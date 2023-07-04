@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+            <div class="row">
+                {% for p in page_obj %}
+                <div class="col-sm-12" style="background-color: #fff">
+                    <div class="panel panel-white post">
+                        <div class="post-heading">
+                            <div class="pull-left image">
+                                {% if p.author.image %}
+                                <img src="{{ p.author.image.url }}" class="img-circle avatar" alt="изображение профиля пользователя">
+                                {% else %}
+                                <img src="silhouette/media_sites/avatar.png" class="img-circle avatar" alt="изображение профиля пользователя">
+                                {% endif %}
+                            </div>
+                            <div class="pull-left meta">
+                                <div class="title h5">
+                                    <a href="{% url 'profile' p.author.username %}" style="text-decoration: none;"><b>{{ p.author.username }}</b></a>
+                                </div>
+                                <h6 class="text-muted time">{{ p.created_at|date:"d-F Y" }}</h6>
+                            </div>
+                        </div>
+                        <div class="post-image">
+                            {% if p.media.name|lower|slice:'-3:' == 'mp4' %}
+                            <a href="#">
+                                <a href="{% url 'post_detail' p.id %}"><video src="{{ p.media.url }}" controls alt="видео поста" class="image"></video></a>
+                            </a>
+                            {% else %}
+                            <a href="#">
+                                <a href="{% url 'post_detail' p.id %}"><img src="{{ p.media.url }}" alt="изображение поста" class="image"></a>
+                            </a>
+                            {% endif %}
+                        </div>
+                        <div class="post-description">
+                            <h4>{{ p.title }}</h4>
+                            <p>{{ p.description|truncatewords:50|safe }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

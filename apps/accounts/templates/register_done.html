@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+<div class="row justify-content-center">
+<div class="col-md-6 mt-5">
+<div class="alert alert-success" role="alert">
+<h4 class="alert-heading">Поздравляем!</h4>
+<p>Вы успешно зарегистрировались!</p>
+<hr>
+<p class="mb-0">
+Теперь вы можете перейти на
+<a href="{% url 'recommend_posts' %}">главную страницу</a>
+или выполнить <a href="{% url 'login' %}">вход</a>.</p>
+</div>
+</div>
+</div>
+</div>
+{% endblock %}

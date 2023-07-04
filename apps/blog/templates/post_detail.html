@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+  .post-description {
+    display: none;  /* Скрыть описание по умолчанию */
+  }
+
+  .reply-form-container {
+    display: none;  /* Скрыть раздел "Ответить" по умолчанию */
+  }
+
+  .reply-list {
+    display: none;  /* Скрыть список ответов по умолчанию */
+  }
+</style>
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-8 col-sm-offset-2">
+      <div class="panel panel-white post">
+        <!-- Post header -->
+        <div class="post-heading">
+          <!-- Author image -->
+          <div class="pull-left image">
+            {% if post.author.image %}
+              <img src="{{ post.author.image.url }}" class="img-circle avatar" alt="Profile image">
+            {% else %}
+              <img src="silhouette/media_sites/avatar.png" class="img-circle avatar" alt="Profile image">
+            {% endif %}
+          </div>
+          <!-- Author name and publish time -->
+          <div class="pull-left meta">
+            <div class="title h5">
+                <a href="{% url 'profile' post.author.username %}" style="text-decoration: none;"><b>{{ post.author }}</b> </a>
+            </div>
+            <h6 class="text-muted time">{{ post.created_at|date:"d-F Y" }}</h6>
+          </div>
+        </div>
+        <div class="post-image">
+          {% if post.media.name|lower|slice:'-3:' == 'mp4' %}
+          <a href="#">
+            <video src="{{ post.media.url }}" controls style="width:838px; height: 800px;  object-fit: contain;"></video>
+          </a>
+          {% else %}
+          <a href="#">
+            <img src="{{ post.media.url }}" alt="" class="image">
+          </a>
+          {% endif %}
+        </div>
+        <div class="post_active">
+          <h4>{{ post.title }}</h4>
+        </div>
+        <div class="post-description">
+          <h4></h4>
+          <p>{{ post.description }}</p>
+        </div>
+        <div class="stats">
+          <form method="POST" action="{% url 'like_dislike_post' post.id %}">
+            {% csrf_token %}
+            <button type="submit" name="action" value="like" class="like-button">
+              <span>Лайк</span>
+              <span class="count">{{ like_count }}</span>
+            </button>
+            <button type="submit" name="action" value="dislike" class="dislike-button">
+              <span>Дизлайк</span>
+              <span class="count">{{ dislike_count }}</span>
+            </button>
+          </form>
+          {% if user == post.author %}
+          <button style="color: black; background-color: black;">
+            <a href="{% url 'post-edit' post.pk %}" style="color: aliceblue;">Изменить</a>
+          </button>
+          </a>
+          {% endif %}
+          {% if user.is_authenticated and user != post.author %}
+            {% if user in post.author.followers.all %}
+              <form method="POST" action="{% url 'unsubscribe' post.author.id %}">
+                {% csrf_token %}
+                <button type="submit" class="unsubscribe-button button-red float-right">
+                  <span>Отписаться</span>
+                </button>
+              </form>
+            {% else %}
+              <form method="POST" action="{% url 'subscribe' post.author.id %}">
+                {% csrf_token %}
+                <button type="submit" class="subscribe-button button-red float-right">
+                  <span>Подписаться</span>
+                </button>
+              </form>
+            {% endif %}
+          {% endif %}
+          <a href="javascript:void(0);" class="btn btn-default stat-item">
+            <i class="fa fa-share icon"></i>128
+          </a>
+        </div>
+        <div class="post-footer">
+          <div class="input-group">
+            <form role="form" method="post" action="{% url 'save_comment' post.id %}">
+              {% csrf_token %}
+              <input class="form-control" placeholder="Добавить комментарий" name="text" type="text">
+              <div class="clearfix float-right">
+                <button type="submit" class="btn btn-primary btn-lg">Опубликовать</button>
+              </div>
+            </form>
+          </div>
+          <ul class="comments-list">
+            {% for comment in post.post_comments.all %}
+              <li class="comment">
+                <a class="pull-left" href="javascript:void(0);">
+                  {% if comment.author.image %}
+                    <img class="avatar" src="{{ comment.author.image.url }}" alt="avatar">
+                  {% else %}
+                    <p>Photo</p>
+                  {% endif %}
+                </a>
+                <div class="comment-body">
+                  <div class="comment-heading">
+                    <h4 class="user">{{ comment.author }}</h4>
+                    <h5 class="time">{{ comment.created_at }}</h5>
+                  </div>
+                  <p>{{ comment.text }}</p>
+                  <a href="javascript:void(0);" class="reply-button" data-comment-id="{{ comment.id }}"><i class="fa fa-reply"></i>Ответить</a>
+                  <div class="reply-form-container" id="reply-form-container-{{ comment.id }}">
+                    <form role="form" method="post" action="{% url 'save_comment' post.id %}">
+                      {% csrf_token %}
+                      <input class="form-control" placeholder="Добавить ответ" name="text" type="text">
+                      <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
+                      <div class="clearfix float-right">
+                        <button type="submit" class="btn btn-primary btn-sm">Опубликовать</button>
+                      </div>
+                    </form>
+                  </div>
+                  <ul class="reply-list">
+                    {% for reply in comment.replies.all %}
+                      <li class="reply">
+                        <a class="pull-left" href="javascript:void(0);">
+                          {% if reply.author.image %}
+                            <img class="avatar" src="{{ reply.author.image.url }}" alt="avatar">
+                          {% else %}
+                            <p>Photo</p>
+                          {% endif %}
+                        </a>
+                        <div class="reply-body">
+                          <div class="reply-heading">
+                            <h4 class="user">{{ comment.author }} {{ reply.author }}</h4>
+                            <h5 class="time">{{ reply.created_at }}</h5>
+                          </div>
+                          <p>  {{ reply.text }}</p>
+                          <a href="javascript:void(0);" class="reply-button" data-comment-id="{{ comment.id }}"><i class="fa fa-reply"></i></a>
+                          <div class="reply-form-container" id="reply-form-container-{{ reply.id }}">
+                            <form role="form" method="post" action="{% url 'save_comment' post.id %}">
+                              {% csrf_token %}
+                              <input class="form-control" placeholder="Добавить ответ" name="text" type="text">
+                              <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
+                              <div class="clearfix float-right">
+                                <button type="submit" class="btn btn-primary btn-sm">Опубликовать</button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // Функция для скрытия/показа описания
+  function toggleDescription() {
+    var description = document.querySelector('.post-description');
+    description.style.display = description.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Функция для скрытия/показа раздела "Ответить"
+  function toggleReplyForm(commentId) {
+    var replyFormContainer = document.querySelector('#reply-form-container-' + commentId);
+    replyFormContainer.style.display = replyFormContainer.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Функция для скрытия/показа списка ответов
+  function toggleReplyList(commentId) {
+    var replyList = document.querySelector('#reply-list-' + commentId);
+    replyList.style.display = replyList.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Обработчики событий для клика на кнопки
+  document.querySelector('.post_active h4').addEventListener('click', toggleDescription);
+
+  var replyButtons = document.querySelectorAll('.reply-button');
+  replyButtons.forEach(function(button) {
+    button.addEventListener('click', function() {
+      var commentId = this.getAttribute('data-comment-id');
+      toggleReplyForm(commentId);
+    });
+  });
+
+  var showReplyButtons = document.querySelectorAll('.show-reply-button');
+  showReplyButtons.forEach(function(button) {
+    button.addEventListener('click', function() {
+      var commentId = this.getAttribute('data-comment-id');
+      toggleReplyList(commentId);
+    });
+  });
+</script>
+
+{% endblock %}

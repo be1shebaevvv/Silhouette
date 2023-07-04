@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" integrity="sha256-2XFplPlrFClt0bIdPgpz8H7ojnk10H69xRqd9+uTShA=" crossorigin="anonymous" />
+<div class="container">
+  <div class="row mt-n5">
+    {% for p in page_obj %}
+      <div class="col-md-6 col-lg-4 mt-5 wow fadeInUp" data-wow-delay=".2s" style="visibility: visible; animation-delay: 0.2s; animation-name: fadeInUp;">
+        <div class="blog-grid">
+          {% if p.media.name|lower|slice:'-3:' == 'mp4' %}
+            <div class="blog-grid-img position-relative">
+              <video src="{{ p.media.url }}" class="card-img-top" alt="{{ p.title }}" style="height: 552px;"></video>
+            </div>
+          {% else %}
+            <div class="blog-grid-img position-relative">
+              <img src="{{ p.media.url }}" class="card-img-top" alt="{{ p.title }}" style="height: 552px;">
+            </div>
+          {% endif %}
+          <div class="blog-grid-text p-4">
+            <h3 class="h5 mb-3"><a href="{% url 'post_detail' p.id %}" style="text-decoration: none; color: black;">{{ p.title }}</a></h3>
+            <p class="display-30">{{ p.description|truncatewords:10|safe }}</p>
+            <div class="meta meta-style2">
+              <ul>
+                <li><i class="fas fa-calendar-alt"></i>{{ p.created_at }}</li>
+                <li><a href="{% url 'profile' p.author.username %}" style="text-decoration: none; color: black;"><i class="fas fa-user"></i>{{ p.author.username }}</a></li>
+                <li><a href="{% url 'post_detail' p.id %}" style="text-decoration: none; color: black;"><i class="fas fa-comments"></i>
+                  {% if comment_count == 0 %}
+                    <p>Нет комментариев</p>
+                  {% else %}
+                    <p> {{ comment_count }}</p>
+                  {% endif %}
+                </a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

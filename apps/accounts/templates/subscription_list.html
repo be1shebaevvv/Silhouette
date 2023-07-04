@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .subscription-container {
+    margin-bottom: 20px;
+  }
+
+  .subscription-list {
+    background-color: #f2f2f2;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .subscription-user {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .subscription-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+
+  .subscription-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .subscription-username {
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+</style>
+
+{% for subscription in subscriptions %}
+<div class="subscription-container">
+  <div class="subscription-list">
+    <div class="subscription-user">
+      {% if subscription.image %}
+        <img class="subscription-avatar" src="{{ subscription.image.url }}" alt="Аватар пользователя">
+      {% endif %}
+      <div class="subscription-info">
+        <h3 class="subscription-username">
+          <a href="{% url 'profile' subscription.username %}" style="text-decoration: none ; color:  black;">{{ subscription.username }}</a>
+        </h3>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block title %}
+Список подписок
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+            <div class="row">
+                {% for post in posts %}
+                <div class="col-sm-12" style="background-color: #C0C0C0;">
+                    <div class="panel panel-white post">
+                        <div class="post-heading">
+                            <div class="pull-left image">
+                                {% if post.author.image %}
+                                <img src="{{ post.author.image.url }}" class="img-circle avatar" alt="изображение профиля пользователя">
+                                {% else %}
+                                <img src="silhouette/media_sites/avatar.png" class="img-circle avatar" alt="изображение профиля пользователя">
+                                {% endif %}
+                            </div>
+                            <div class="pull-left meta">
+                                <div class="title h5">
+                                    <a href="{% url 'profile' post.author.username %}" style="text-decoration: none;"><b>{{ post.author.username }}</b></a>
+                                </div>
+                                <h6 class="text-muted time">{{ post.created_at|date:"d-F Y" }}</h6>
+                            </div>
+                        </div>
+                        <div class="post-image">
+                            {% if post.media.name|lower|slice:'-3:' == 'mp4' %}
+                            <a href="#">
+                                <video src="{{ post.media.url }}" controls alt="видео поста" class="image"></video>
+                            </a>
+                            {% else %}
+                            <a href="#">
+                                <img src="{{ post.media.url }}" alt="изображение поста" class="image">
+                            </a>
+                            {% endif %}
+                        </div>
+                        <div class="post-description">
+                            <h4>{{ post.title }}</h4>
+                            <p>{{ post.description|truncatewords:50|safe }}</p>
+                        </div>
+                        <div class="post-footer">
+                            <div class="input-group text-center" style="margin-top: 10px;">
+                                <a href="{% url 'post_detail' post.id %}">
+                                    <button class="btn btn-primary">Перейти к посту</button>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

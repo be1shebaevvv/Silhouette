@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .follower-container {
+    margin-bottom: 20px;
+  }
+
+  .follower-list {
+    background-color: #f2f2f2;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .follower-user {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .follower-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+
+  .follower-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .follower-username {
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+</style>
+
+{% for follower in followers %}
+<div class="follower-container">
+  <div class="follower-list">
+    <div class="follower-user">
+      {% if follower.image %}
+        <img class="follower-avatar" src="{{ follower.image.url }}" alt="Аватар пользователя">
+      {% endif %}
+      <div class="follower-info">
+        <h3 class="follower-username">
+          <a href="{% url 'profile' follower.username %}" style="text-decoration: none; color: black;">{{ follower.username }}</a>
+        </h3>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block title %}
+Список подписчиков
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+<style>
+    .container {
+        margin-top: 20px;
+    }
+
+    .row.clearfix:before,
+    .row.clearfix:after {
+        content: "";
+        display: table;
+    }
+
+    .row.clearfix:after {
+        clear: both;
+    }
+
+    .col-lg-12 {
+        width: 100%;
+    }
+
+    .card.chat-app {
+        background-color: #f7f7f7;
+        border: 1px solid #e3e3e3;
+        border-radius: 4px;
+        padding: 10px;
+    }
+
+    .chat {
+        margin-top: 20px;
+    }
+
+    .chat-header.clearfix {
+        margin-bottom: 10px;
+    }
+
+    .row {
+        margin-right: -15px;
+        margin-left: -15px;
+    }
+
+    .col-lg-6 {
+        position: relative;
+        width: 100%;
+        min-height: 1px;
+        padding-right: 15px;
+        padding-left: 15px;
+    }
+
+    .chat-about {
+        padding: 15px;
+        border-bottom: 1px solid #e3e3e3;
+        background-color: #89dad5;
+    }
+
+    .chat-photo {
+        float: left;
+        margin-right: 10px;
+        margin-top: 10px;
+    }
+
+    .m-b-0 {
+        margin-bottom: 0;
+    }
+
+    .chat-history {
+        padding: 15px;
+        background-color: #c2f5e6;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .clearfix {
+        clear: both;
+    }
+
+    .message-data.text-right {
+        text-align: right;
+    }
+
+    .message-data-time {
+        color: #74777b;
+        font-size: 12px;
+    }
+
+    .message.other-message {
+        margin-top: 5px;
+        margin-right: 500px;
+        background-color: #6866d6;
+        padding: auto;
+        border-radius: 5px;
+        font-size: 14px;
+        color: #fff;
+    }
+
+    .message.own-message {
+        margin-top: 5px;
+        margin-left: 500px;
+        background-color: #007bff;
+        padding: auto;
+        border-radius: 5px;
+        font-size: 14px;
+        color: #fff;
+    }
+
+    .chat-message.clearfix {
+        margin-top: 20px;
+        border-top: 1px solid #0e0d0d;
+    }
+
+    .input-group.mb-0 {
+        margin-bottom: 0;
+    }
+
+    .input-group-prepend,
+    .input-group-text {
+        display: flex;
+    }
+
+    .input-group-prepend .input-group-text {
+        border: none;
+        background-color: transparent;
+        color: #007bff;
+    }
+
+    .form-control {
+        border-radius: 0;
+    }
+
+    .btn.btn-primary {
+        border-radius: 0;
+    }
+</style>
+
+<div class="container">
+    <div class="row clearfix">
+        <div class="col-lg-12">
+            <div class="card chat-app">
+                <div class="chat">
+                    <div class="chat-header clearfix">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="chat-about m-b-0">
+                                    {% if recipient.image %}
+                                        <a href="{% url 'profile' recipient.username %}"><img src="{{ recipient.image.url }}" style="height: 60px; width: 60px; border-radius: 50%;" alt="аватар"></a>
+                                    {% else %}
+                                        <a href="{% url 'profile' recipient.username %}"><p>Фото</p></a>
+                                    {% endif %}
+                                    <a href="{% url 'profile' recipient.username %}" style="text-decoration: none; color: black;"><h4>{{ recipient.username }}</h4></a>
+                                    <small>Последний вход: {{ recipient.login }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-history">
+                        <ul class="m-b-0">
+                            {% for message in messages %}
+                                {% if message.sender == recipient %}
+                                    <li class="clearfix">
+                                        <div class="message-data">
+                                            {% if recipient.image %}
+                                                <img src="{{ recipient.image.url }}" style="height: 40px; width: 40px; border-radius: 50%;" alt="аватар">
+                                                <span class="message-data-time">{{ message.timestamp }}</span>
+                                            {% else %}
+                                                <p>Фото</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="message other-message float-left">
+                                            <p><h5><strong>{{ recipient.username }}</strong></h5></p>
+                                            <h6>{{ message.content }}</h6>
+                                        </div>
+                                    </li>
+                                {% else %}
+                                    <li class="clearfix">
+                                        <div class="message-data text-right">
+                                    
+                                            {% if message.sender.image %}
+                                                <span class="message-data-time">{{ message.timestamp }}</span>
+                                                <a href=""><img src="{{ message.sender.image.url }}" style="height: 40px; width: 40px; border-radius: 50%;" alt="аватар"></a>
+                                            {% else %}
+                                                <p>Фото</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="message own-message float-right" style="text-align: right;">
+                                            <p><h5><strong>{{ message.sender.username }}</strong></h5></p>
+                                            <h6>{{ message.content }}</h6>
+                                        </div>
+                                        
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="chat-message clearfix">
+                        <form id="chat-form" method="POST" action="{% url 'chats' recipient.id %}">
+                            {% csrf_token %}
+                            <div class="input-group mb-0">
+                                <div class="input-group-prepend">
+                                </div>
+                                <input type="text" class="form-control" name="content" autocomplete="off" placeholder="Введите текст здесь...">
+                                <button type="submit" class="btn btn-primary"><span class="input-group-text"><i class="fa fa-send"></i></span></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

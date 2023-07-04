@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/post.css' %}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.1/css/fontawesome.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{% endblock %}</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      overflow-y: scroll;
+      background-image: url("/home/ermek/IT_run/Silhouette_project/silhouette/media_sites/istockphoto-540964262-612x612.jpg");
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center;
+      text-decoration: none;
+    }
+    #video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar bg-dark" data-bs-theme="dark">
+    <!-- Navbar content -->
+  </nav>
+  <nav class="navbar navbar-expand-lg bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{% url 'login' %}">
+        <h3>Silhouette</h3>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarScroll">
+        <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'feed' %}">Главная страница</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'recommend_posts' %}">Рекомендации</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fa-solid fa-bars"></i>
+              Меню
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="{% url 'add_post' %}">Создать пост</a></li>
+              <li><a class="dropdown-item" href="{% url 'list_chat' %}"><i class="fa-solid fa-envelope"></i>Чат</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#">Уведомления</a></li>
+            </ul>
+          </li>
+        </ul>
+        <div class="dropdown">
+          {% if request.user.is_authenticated %}
+            {% if user.image %}
+              <a href="{% url 'profil' %}" class="dropdown-toggle" data-bs-toggle="dropdown"> <img src="{{ request.user.image.url }}" style="height: 60px; width: 60px; border-radius: 50%;" alt="аватар"></a>
+            {% else %}
+              <a href="{% url 'profil' %}" class="dropdown-toggle" data-bs-toggle="dropdown" style="text-decoration: none; color: black;"> Фото</a>
+            {% endif %}
+          <ul class="dropdown-menu">
+            <li>
+              <li><a class="dropdown-item" href="{% url 'profil' %}">Профиль</a></li>
+              <a href="{% url 'logout' %}" class="dropdown-item">Выйти</a>
+            </li>
+          </ul>
+      {% else %}
+      <a href="{% url 'login' %}" class="btn">Войти</a>
+      <a href="{% url 'register' %}" class="btn">Регистрация</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+  </nav>
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js" integrity="sha384-zYPOMqeu1DAVkHiLqWBUTcbYfZ8osu1Nd6Z89ify25QV9guujx43ITvfi12/QExE" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.min.js" integrity="sha384-Y4oOpwW3duJdCWv5ly8SCFYWqFDsfob/3GkgExXKV4idmbt98QcxXYs9UoXAB7BZ" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+  <script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+</body>
+</html>

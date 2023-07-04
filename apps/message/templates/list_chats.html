@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .chat-container {
+    margin-bottom: 20px;
+  }
+
+  .chat-list {
+    background-color: #f2f2f2;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .user {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  .user-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .user-nickname {
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  .last-message a {
+    color: #007bff;
+    text-decoration: none;
+  }
+
+  .last-message a:hover {
+    text-decoration: none;
+    color: black;
+    
+  }
+</style>
+
+{% for chat in chats %}
+<div class="chat-container">
+  <div class="chat-list">
+    <div class="user">
+      {% if chat.user.image %}
+        <img class="user-photo" src="{{ chat.user.image.url }}" alt="Фото пользователя">
+      {% endif %}
+      <div class="user-info">
+        <h3 class="user-nickname">{{ chat.user.username }}</h3>
+        <p class="last-message"><a href="{% url 'chats' chat.user.id %}" >{{ chat.latest_message.content }}</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- list_chats.html -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+$(document).ready(function() {
+  function updateChats() {
+    $.ajax({
+      url: window.location.href,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data) {
+        // Обновление содержимого страницы с помощью полученных данных
+        // Например, можно обновить список чатов или отобразить уведомление о новых сообщениях
+        console.log(data.chats);
+      },
+      complete: function() {
+        // Запустить обновление снова через некоторое время
+        setTimeout(updateChats, 5000);  // Здесь 5000 - интервал обновления в миллисекундах (5 секунд)
+      }
+    });
+  }
+
+  // Начать обновление чатов
+  updateChats();
+});
+</script>
+ 
+{% endfor %}
+
+
+{% endblock %}
+
+{% block title %}
+Лист чатов
+{% endblock %}
