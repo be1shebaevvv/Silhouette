@@ -42,6 +42,8 @@
     <div class="subscription-user">
       {% if subscription.image %}
         <img class="subscription-avatar" src="{{ subscription.image.url }}" alt="Аватар пользователя">
+      {% else %}
+        <img class="subscription-avatar" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU" alt="Аватар пользователя">
       {% endif %}
       <div class="subscription-info">
         <h3 class="subscription-username">

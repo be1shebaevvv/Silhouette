@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .chat-container {
+    margin-bottom: 20px;
+  }
+
+  .chat-list {
+    background-color: #f2f2f2;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .user {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  .user-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .user-nickname {
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  .last-message a {
+    color: #007bff;
+    text-decoration: none;
+  }
+
+  .last-message a:hover {
+    text-decoration: none;
+    color: black;
+  }
+</style>
+<form method="GET" action="{% url 'searchs' %}">
+  <input type="text" name="query" placeholder="Введите никнейм пользователя" autocomplete="off">
+  <button type="submit">Поиск</button>
+</form>
+{% for chat in messages %}
+    {% if forloop.first or chat.sender != messages.first.sender %}
+
+        <div class="chat-container">
+            <div class="chat-list">
+                <div class="user">
+                    {% if chat.sender == request.user %}
+                        {% if chat.recipient.image %}
+                            <img class="user-photo" src="{{ chat.recipient.image.url }}" alt="Фото пользователя">
+                        {% else %}
+                            <img class="user-photo" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU" alt="Фото пользователя">
+                        {% endif %}
+                        <div class="user-info">
+                            <a href="{% url 'chats' chat.recipient.id %}"><h3 class="user-nickname">{{ chat.recipient.username }}</h3></a>
+                        </div>
+                    {% else %}
+                        {% if chat.sender.image %}
+                            <img class="user-photo" src="{{ chat.sender.image.url }}" alt="Фото пользователя">
+                        {% else %}
+                            <img class="user-photo" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU" alt="Фото пользователя">
+                        {% endif %}
+                        <div class="user-info">
+                            <a href="{% url 'chats' chat.sender.id %}"><h3 class="user-nickname">{{ chat.sender.username }}</h3></a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+$(document).ready(function() {
+  function updateChats() {
+    $.ajax({
+      url: window.location.href,
+      type: 'GET',
+      dataType: 'json',
+      success: function(data) {
+        console.log(data.chats);
+      },
+      complete: function() {
+        setTimeout(updateChats, 5000);
+      }
+    });
+  }
+
+  updateChats();
+});
+</script>
+{% endblock %}
+
+{% block title %}
+     Чаты
+{% endblock %}

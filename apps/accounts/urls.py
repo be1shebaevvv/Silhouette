@@ -18,6 +18,7 @@ urlpatterns = [
     path("unsubscribe/<int:user_id>", views.unsubscribe, name="unsubscribe"),
     path("followers/list/<str:username>", views.followers_view, name="followers"),
     path('subscriptions/<str:username>', views.subscription_list, name='subscription_list'),
+    path('searh/user/', views.search_results, name = "search"),
 
     # url for user activation 
     path("register/confirm/<str:uidb64>/<str:token>/", views.activate_account, name="account_activate")

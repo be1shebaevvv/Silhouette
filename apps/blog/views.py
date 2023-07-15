@@ -5,7 +5,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy, reverse
 from django.forms.models import BaseModelForm
 from django.http import HttpResponse
+from django.db.models import Count
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
+import random
 
 
 from apps.blog.models import Post, Category, Comment
@@ -27,11 +29,23 @@ class PostListViews(ListView):
         return queryset
 
 
+def listviews(request):
+    return render(request, 'index1.html')
+
+
+
+
 class RecomentPost(ListView):
     template_name = "post_recommendations.html"
     model = Post
     context_object_name = "posts"
-    queryset = Post.objects.filter(is_active=True)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.filter(is_active=True)
+        random_posts = random.sample(list(queryset), len(queryset))
+        return random_posts
+
 
 
 class UserPosts(LoginRequiredMixin, ListView):
@@ -202,3 +216,14 @@ def feed(request):
     }
 
     return render(request, 'feed.html', context)
+
+
+# Топ 3 поста 
+
+
+
+def top_posts_view(request):
+    top_posts = Post.objects.order_by('-likes')[:3]
+    return render(request, 'index1.html', {'top_posts': top_posts})
+
+

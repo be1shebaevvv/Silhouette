@@ -149,7 +149,7 @@
                                         <a href="{% url 'profile' recipient.username %}"><p>Фото</p></a>
                                     {% endif %}
                                     <a href="{% url 'profile' recipient.username %}" style="text-decoration: none; color: black;"><h4>{{ recipient.username }}</h4></a>
-                                    <small>Последний вход: {{ recipient.login }}</small>
+                                    <small>Последний вход: {{ messages.recipient.timestamp }}</small>
                                 </div>
                             </div>
                         </div>
@@ -180,7 +180,7 @@
                                                 <span class="message-data-time">{{ message.timestamp }}</span>
                                                 <a href=""><img src="{{ message.sender.image.url }}" style="height: 40px; width: 40px; border-radius: 50%;" alt="аватар"></a>
                                             {% else %}
-                                                <p>Фото</p>
+                                                <a href=""><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU" style="height: 40px; width: 40px; border-radius: 50%;" alt="аватар"></a>
                                             {% endif %}
                                         </div>
                                         <div class="message own-message float-right" style="text-align: right;">

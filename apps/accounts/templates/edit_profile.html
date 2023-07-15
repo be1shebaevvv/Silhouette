@@ -1,97 +1,190 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-xl px-4 mt-4">
-  <hr class="mt-0 mb-4">
-  <div class="row">
-    {% if form.errors %}
-       {% for field in form %}
-           {% for error in field.errors %} 
-              <div class="alert alert-danger">
-                   <strong>{{ error }}</strong>
-              </div>
-           {% endfor %}
-       {% endfor %}
-    {% endif %}
-      <div class="col-xl-4">
-          <!-- Profile picture card-->
-          <div class="card mb-4 mb-xl-0">
-              <div class="card-header">Профиль</div>
-              <div class="card-body text-center">
-                {% if user.image %}
-                  <img class="img-account-profile rounded-circle mb-2" src="{{ user.image.url }}"> 
-                {% else %}
-                  <p>Фотография не загружена</p>
-                {% endif %}
-                <div class="small font-italic text-muted mb-4"><p><h5>Никнейм: {{ user.username}}</h5></p>
-                    <p><h5>Имя Фамилия: {{user.last_name}} {{user.first_name}}</h5></p>
-                    <p><h6> Email: {{ user.email }}</h6></p>
-                    <p><h5>Дата рождения:{{ user.date_of_birth }}</h5></p>
-                    
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Редактирование профиля</title>
+    <style>
+        /* Add this CSS to your existing stylesheet or create a new one */
+        .container-xl {
+            margin-top: 40px;
+        }
+    .card-header {
+        background-color: #333;
+        font-weight: bold;
+    }
 
-                </div>
-              </div>
-              
+    .card-body {
+        padding: 40px;
+        background-color: #333;
+        color: #fff;
+    }
 
-          </div>
-      </div>
-      <div class="col-xl-8">
-          <!-- Account details card-->
-          <div class="card mb-4">
-              <div class="card-header">Настройки аккаунта</div>
-              <div class="card-body">
-                  <form method="POST" enctype="multipart/form-data">
-                      {% csrf_token %}
-                      <!-- Form Group (username)-->
-                      <div class="mb-3" autocomplete="off">
-                          {{ form.username.label_tag }}
-                          {{ form.username }}
+    .card {
+        border: 1px solid black;
+        border-radius: 5px;
+        color: #e9ecef;
+    }
+
+    .img-account-profile {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-bottom: 10px;
+        color: #e9ecef;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #fff;
+        border-color: #f5c6cb;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .mb-3 {
+        margin-bottom: 15px;
+        color: #e9ecef;
+    }
+
+    .small {
+        font-size: 12px;
+        color: #e9ecef;
+    }
+
+    .mb-xl-0 {
+        margin-bottom: 0;
+        color: #e9ecef;
+    }
+
+    .mb-4 {
+        margin-bottom: 20px;
+        color: #e9ecef;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: #fff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0069d9;
+    }
+
+    label {
+        font-weight: bold;
+        color: #e9ecef;
+    }
+
+    .row {
+        margin-right: -10px;
+        margin-left: -10px;
+    }
+
+    .col-md-6 {
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    hr {
+        border-top: 1px solid #e9ecef;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+</style>
+</head>
+<body>
+    <div class="container-xl px-4 mt-4">
+        <hr class="mt-0 mb-4">
+        <div class="row">
+            {% if form.errors %}
+               {% for field in form %}
+                   {% for error in field.errors %} 
+                      <div class="alert alert-danger">
+                           <strong>{{ error }}</strong>
                       </div>
-                      <!-- Form Row-->
-                      <div class="row gx-3 mb-3" autocomplete="off">
-                          <!-- Form Group (first name)-->
-                          <div class="col-md-6">
-                              {{ form.first_name.label_tag }}
-                              {{ form.first_name }}
-                          </div>
-                          <!-- Form Group (last name)-->
-                          <div class="col-md-6" autocomplete="off">
-                              {{ form.last_name.label_tag }}
-                              {{ form.last_name }}
-                          </div>
-                      </div>
-                      <!-- Form Group (email address)-->
-                      <div class="mb-3" autocomplete="off">
-                          {{ form.email.label_tag }}
-                          {{ form.email }}
-                      </div>
-                      <div class="mb-3" autocomplete="off">
-                        {{ form.image.label_tag }}
-                        {{ form.image }}
-                    </div>
-                      <!-- Form Row-->
-                      <div class="row gx-3 mb-3">
-                          <!-- Form Group (birthday)-->
-                          <div class="col-md-6">
-                              {{ form.date_of_birth.label_tag }}
-                              {{ form.date_of_birth }}
-                              
-                          </div>
-                      </div>
-                      <div class="row gx-3 mb-3">
-                        <!-- Form Group (birthday)-->
-                        <div class="col-md-6" autocomplete="off">
-                            {{ form.gender.label_tag }}
-                            {{ form.gender }}
-                            
+                   {% endfor %}
+               {% endfor %}
+            {% endif %}
+            <div class="col-xl-4">
+                <!-- Profile picture card-->
+                <div class="card mb-4 mb-xl-0">
+                    <div class="card-header">Профиль</div>
+                    <div class="card-body text-center">
+                        {% if user.image %}
+                          <img class="img-account-profile rounded-circle mb-2" src="{{ user.image.url }}"> 
+                        {% else %}
+                        <img class="img-account-profile rounded-circle mb-2" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU"> 
+                        {% endif %}
+                        <div class="small font-italic text-muted mb-4" style="color: #fff;">
+                            <p><h5 style="color: #fff;">Никнейм: {{ user.username}}</h5></p>
+                            <p><h5 style=" color: #fff;">Имя Фамилия: {{user.last_name}} {{user.first_name}}</h5></p>
+                            <p><h6 style="color: #fff;">Email: {{ user.email }}</h6></p>
+                            <p><h5 style=" color: #fff;">Дата рождения: {{ user.date_of_birth }}</h5></p>
                         </div>
                     </div>
-                      <!-- Save changes button-->
-                      <button class="btn btn-primary" type="submit">Сохранить</button>
-                  </form>
-              </div>
-          </div>
-      </div>
-  </div>
-</div>
+                </div>
+            </div>
+            <div class="col-xl-8">
+                <!-- Account details card-->
+                <div class="card mb-4">
+                    <div class="card-header">Настройки аккаунта</div>
+                    <div class="card-body">
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <!-- Form Group (username)-->
+                            <div class="mb-3" autocomplete="off">
+                                {{ form.username.label_tag }}
+                                {{ form.username }}
+                            </div>
+                            <!-- Form Row-->
+                            <div class="row gx-3 mb-3" autocomplete="off">
+                                <!-- Form Group (first name)-->
+                                <div class="col-md-6">
+                                    {{ form.first_name.label_tag }}
+                                    {{ form.first_name }}
+                                </div>
+                                <!-- Form Group (last name)-->
+                                <div class="col-md-6" autocomplete="off">
+                                    {{ form.last_name.label_tag }}
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+                            <!-- Form Group (email address)-->
+                            <div class="mb-3" autocomplete="off">
+                                {{ form.email.label_tag }}
+                                {{ form.email }}
+                            </div>
+                            <div class="mb-3" autocomplete="off">
+                                {{ form.image.label_tag }}
+                                {{ form.image }}
+                            </div>
+                            <!-- Form Row-->
+                            <div class="row gx-3 mb-3">
+                                <!-- Form Group (birthday)-->
+                                <div class="col-md-6">
+                                    {{ form.date_of_birth.label_tag }}
+                                    {{ form.date_of_birth }}
+                                </div>
+                            </div>
+                            <div class="row gx-3 mb-3">
+                                <!-- Form Group (gender)-->
+                                <div class="col-md-6" autocomplete="off">
+                                    {{ form.gender.label_tag }}
+                                    {{ form.gender }}
+                                </div>
+                            </div>
+                            <!-- Save changes button-->
+                            <button class="btn btn-primary" type="submit">Сохранить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
 {% endblock %}

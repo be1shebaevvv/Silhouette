@@ -10,11 +10,11 @@
         <div class="blog-grid">
           {% if p.media.name|lower|slice:'-3:' == 'mp4' %}
             <div class="blog-grid-img position-relative">
-              <video src="{{ p.media.url }}" class="card-img-top" alt="{{ p.title }}" style="height: 552px;"></video>
+              <video src="{{ p.media.url }}" class="card-img-top" alt="{{ p.title }}" style="height: 400px;"></video>
             </div>
           {% else %}
             <div class="blog-grid-img position-relative">
-              <img src="{{ p.media.url }}" class="card-img-top" alt="{{ p.title }}" style="height: 552px;">
+              <img src="{{ p.media.url }}" class="card-img-top" alt="{{ p.title }}" style="height: 400px;">
             </div>
           {% endif %}
           <div class="blog-grid-text p-4">

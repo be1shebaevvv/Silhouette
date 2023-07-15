@@ -27,7 +27,7 @@ class LoginView(FormView):
         if user is not None:
             if user.is_active:
                 login(self.request, user)
-                return redirect("recommend_posts")
+                return redirect("feed")
             else:
                 return HttpResponse("Ваш аккаунт не активен")
         return HttpResponse("Такого пользователя не существует или данные неверны")
@@ -45,6 +45,8 @@ class RegisterDoneView(TemplateView):
 
 from django.urls import reverse_lazy
 
+import re
+
 class UserRegisterView(CreateView):
     model = User
     template_name = "register.html"
@@ -52,9 +54,15 @@ class UserRegisterView(CreateView):
     success_url = reverse_lazy("register_done")
 
     def form_valid(self, form):
+        nickname = form.cleaned_data.get("username", "email")  # Получаем введенный никнейм из формы
+        if not re.match(r'^[a-zA-Z0-9_]+$', nickname):  # Проверяем, соответствует ли никнейм требованиям
+            form.add_error("username", "Никнейм должен содержать только английские символы.")  # Добавляем ошибку в форму
+            return self.form_invalid(form)  # Возвращаем невалидную форму с ошибкой
+
         user = form.save()
-        send_activation_email(user,request=self.request, to_email=user.email)
+        send_activation_email(user, request=self.request, to_email=user.email)
         return super().form_valid(form)
+
 
 
 
@@ -77,7 +85,7 @@ def my_view(request):
 def user_profile(request , user_id):
     user = User.objects.get(id=request.user.id)  
     other_files = user.other_files.all()  
-    default_image = 'silhouette/media_sites/defolt_user_images.png'
+    default_image = '/home/ermek/IT_run/Silhouette_project/silhouette/media_sites/avatar.png'
     context = {
         'user': user,
         'other_files': other_files,
@@ -114,7 +122,7 @@ def profile_view(request):
     return render(request, 'profil.html', {'posts': posts})
 
 
-
+@login_required(login_url='login')
 def edit_profile(request):
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=request.user)
@@ -194,3 +202,30 @@ def my_view(request):
     request.user.save()
     context = {'user': user}
     return render(request, 'chat.html', context)
+
+
+
+# поиск человека
+
+
+def search_results(request):
+    query = request.GET.get('query')
+    current_user = request.user
+
+    # Exclude the current user from the user search results
+    users = User.objects.filter(username__icontains=query).exclude(id=current_user.id)
+
+    # Filter posts by category
+    category = request.GET.get('category')
+    if category:
+        posts = Post.objects.filter(category__name=category)
+    else:
+        posts = Post.objects.exclude(category__isnull=False)
+
+    context = {
+        'users': users,
+        'posts': posts,
+        'category': category,
+    }
+    return render(request, 'search.html', context)
+

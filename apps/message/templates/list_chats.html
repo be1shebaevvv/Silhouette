@@ -46,13 +46,18 @@
     
   }
 </style>
-
+<form method="GET" action="{% url 'searchs' %}">
+  <input type="text" name="query" placeholder="Введите никнейм пользователя" autocomplete="off">
+  <button type="submit">Поиск</button>
+</form>
 {% for chat in chats %}
 <div class="chat-container">
   <div class="chat-list">
     <div class="user">
       {% if chat.user.image %}
         <img class="user-photo" src="{{ chat.user.image.url }}" alt="Фото пользователя">
+      {% else%}
+        <img class="user-photo" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU" alt="Фото пользователя">
       {% endif %}
       <div class="user-info">
         <h3 class="user-nickname">{{ chat.user.username }}</h3>

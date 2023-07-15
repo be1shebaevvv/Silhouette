@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .follower-container {
+    margin-bottom: 20px;
+  }
+
+  .follower-list {
+    background-color: #f2f2f2;
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .follower-user {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .follower-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+
+  .follower-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .follower-username {
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+</style>
+
+<form method="GET" action="{% url 'search' %}">
+    <input type="text" name="query" placeholder="Поиск" autocomplete="off">
+    <button type="submit">Поиск</button>
+  </form>
+
+{% for user in users %}
+<div class="follower-container">
+  <div class="follower-list">
+    <div class="follower-user">
+      {% if user.image %}
+      <img class="follower-avatar" src="{{ user.image.url }}" alt="Аватар пользователя">
+      {% else %}
+      <img class="follower-avatar" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU" alt="Аватар пользователя">
+      {% endif %}
+      <div class="follower-info">
+        <h3 class="follower-username">
+          <a href="{% url 'profile' user.username %}" style="text-decoration: none; color: black;">{{ user.username }}</a>
+        </h3>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<div class="row">
+  {% for post in posts %}
+  <div class="col-md-4 mb-4">
+    <div class="card post-card">
+      {% if post.media.name|lower|slice:'-3:' == 'mp4' %}
+      <a href="{% url 'all' %}?id={{ post.id }}">
+        <video src="{{ post.media.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 400px;"></video>
+      </a>
+      {% else %}
+      <a href="{% url 'all' %}?id={{ post.id }}">
+        <img src="{{ post.media.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 400px;">
+      </a>
+      {% endif %}
+      {% if user.is_authenticated and user != post.author %}
+      {% if user in post.author.followers.all %}
+      <form method="POST" action="{% url 'unsubscribe' post.author.id %}">
+        {% csrf_token %}
+        <div class="input-group text-center">
+          <button class="btn btn-primary">Отписаться</button>
+        </div>
+      </form>
+      {% else %}
+      <form method="POST" action="{% url 'subscribe' post.author.id %}">
+        {% csrf_token %}
+        <div class="input-group text-center">
+          <button class="btn btn-primary">Подписаться</button>
+        </div>
+      </form>
+      {% endif %}
+      {% endif %}
+      <div class="avatar-username">
+        {% if post.author.image %}
+        <img src="{{ post.author.image.url }}" style="height: 40px; width: 40px; border-radius: 50%;" alt="аватар">
+        <a href="{% url 'profile' post.author.username %}" style="color: black; text-decoration: none;"
+          class="username">{{ post.author.username }}</a>
+        {% else %}
+        <img
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU"
+          style="height: 40px; width: 40px; border-radius: 50%;" alt="аватар">
+        <a href="{% url 'profile' post.author.username %}" style="color: black; text-decoration: none;"
+          class="username">{{ post.author.username }}</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if not users and not posts %}
+<p>No results found.</p>
+{% endif %}
+
+{% endblock %}
+
+{% block title %}
+Search Results
+{% endblock %}

@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 
 {% block styles %}
-
 <style>
 .post-card {
   width: 100%;
@@ -9,61 +8,148 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .post-card img {
   object-fit: cover;
-  height: 200px; /* Change the size as desired */
+  height: 200px;
 }
 
 .post-card video {
   object-fit: cover;
-  height: 200px; /* Change the size as desired */
+  height: 200px;
 }
 
 .post-card .card-body {
   padding: 1rem;
 }
+
+.post-card .username {
+  font-size: 1.5rem;
+  margin: 0.5rem 0 0;
+}
+
+.post-card .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.post-card .btn {
+  margin-top: 10px;
+}
+
+.post-card .btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.post-card .btn-primary:hover {
+  background-color: #0069d9;
+  border-color: #0062cc;
+}
+
+.post-card a {
+  text-decoration: none;
+  color: black;
+}
+
+.row {
+  margin: 0 -15px;
+}
+
+.col-md-4 {
+  padding: 0 15px;
+}
+
+.d-flex.align-items-center {
+  align-items: center;
+}
+
+.avatar-username {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+}
+
+form {
+  margin-bottom: 20px;
+}
+
+form input[type="text"] {
+  padding: 5px;
+  font-size: 16px;
+}
+
+form button[type="submit"] {
+  padding: 5px 10px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+form button[type="submit"]:hover {
+  background-color: #0069d9;
+}
+
 </style>
 {% endblock %}
 
 {% block content %}
+<form method="GET" action="{% url 'search' %}">
+  <input type="text" name="query" placeholder="Поиск" autocomplete="off">
+  <button type="submit">Поиск</button>
+</form>
 
-  <div class="row">
-    {% for post in posts %}
-      <div class="col-md-4 mb-4">
-        <div class="card post-card">
-          {% if post.media.name|lower|slice:'-3:' == 'mp4' %}
-            <!-- File is a video -->
-            <a href="{% url 'all' %}?id={{ post.id }}">
-              <video src="{{ post.media.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 552px;"></video>
-            </a>
-          {% else %}
-            <!-- File is an image -->
-            <a href="{% url 'all' %}?id={{ post.id }}">
-              <img src="{{ post.media.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 552px;">
-            </a>
-          {% endif %}
-          {% if user.is_authenticated and user != post.author %}
-          {% if user in post.author.followers.all %}
-            <form method="POST" action="{% url 'unsubscribe' post.author.id %}">
-              {% csrf_token %}
-              <button type="submit" class="unsubscribe-button button-red float-right">
-                <span>Отписаться</span>
-              </button>
-            </form>
-          {% else %}
-            <form method="POST" action="{% url 'subscribe' post.author.id %}">
-              {% csrf_token %}
-              <button type="submit" class="subscribe-button button-red float-right">
-                <span>Подписаться</span>
-              </button>
-            </form>
-          {% endif %}
-        {% endif %}
-        <a href="{% url 'profile' post.author.username %}" style="text-decoration: none; color: black;"><h1>{{ post.author.username}}</h1></a>
+<div class="row">
+  {% for post in posts %}
+  <div class="col-md-4 mb-4">
+    <div class="card post-card">
+      {% if post.media.name|lower|slice:'-3:' == 'mp4' %}
+      <a href="{% url 'all' %}?id={{ post.id }}">
+        <video src="{{ post.media.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 400px;"></video>
+      </a>
+      {% else %}
+      <a href="{% url 'all' %}?id={{ post.id }}">
+        <img src="{{ post.media.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 400px;">
+      </a>
+      {% endif %}
+      {% if user.is_authenticated and user != post.author %}
+      {% if user in post.author.followers.all %}
+      <form method="POST" action="{% url 'unsubscribe' post.author.id %}">
+        {% csrf_token %}
+        <div class="input-group text-center">
+          <button class="btn btn-primary" style="background-color:  red;">Отписаться</button>
         </div>
+      </form>
+      {% else %}
+      <form method="POST" action="{% url 'subscribe' post.author.id %}">
+        {% csrf_token %}
+        <div class="input-group text-center">
+          <button class="btn btn-primary" style="background-color:  red;">Подписаться</button>
+        </div>
+      </form>
+      {% endif %}
+      {% endif %}
+      <div class="avatar-username">
+        {% if post.author.image %}
+        <img src="{{ post.author.image.url }}" style="height: 40px; width: 40px; border-radius: 50%;" alt="аватар">
+          <a href="{% url 'profile' post.author.username %}" style="color: black; text-decoration: none;" class="username">{{ post.author.username }}</a>
+        {% else %}
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU" style="height: 40px; width: 40px; border-radius: 50%;" alt="аватар">
+          <a href="{% url 'profile' post.author.username %}" style="color: black; text-decoration: none;" class="username">{{ post.author.username }}</a>
+        {% endif %}
       </div>
-    {% endfor %}
+    </div>
   </div>
+  {% endfor %}
+</div>
 {% endblock %}

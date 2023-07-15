@@ -1,8 +1,49 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+<style>
+    .subscribe-button,
+    .unsubscribe-button {
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        transition-duration: 0.4s;
+        border-radius: 5px;
+        width: 130px;
+    }
+
+    .subscribe-button {
+        background-color: red;
+    }
+
+    .subscribe-button:hover {
+        background-color: red;
+    }
+
+    .unsubscribe-button {
+        background-color: #f44336;
+    }
+
+    .unsubscribe-button:hover {
+        background-color: #d32f2f;
+    }
+
+    .button-red {
+        color: white;
+    }
+
+    .float-right {
+        float: right;
+    }
+</style>
+
 <div class="container">
     <div class="row">
         <div class="col-sm-8 col-sm-offset-2">
@@ -15,13 +56,35 @@
                                 {% if p.author.image %}
                                 <img src="{{ p.author.image.url }}" class="img-circle avatar" alt="изображение профиля пользователя">
                                 {% else %}
-                                <img src="silhouette/media_sites/avatar.png" class="img-circle avatar" alt="изображение профиля пользователя">
+                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU" class="img-circle avatar" alt="изображение профиля пользователя">
                                 {% endif %}
                             </div>
                             <div class="pull-left meta">
+                              <div class="pull-left meta">
                                 <div class="title h5">
-                                    <a href="{% url 'profile' p.author.username %}" style="text-decoration: none;"><b>{{ p.author.username }}</b></a>
+                                  <a href="{% url 'profile' p.author.username %}" style="text-decoration: none;">
+                                    <b>{{ post.author }}</b>
+                                </a>                                
+                                    {% if user.is_authenticated and user != post.author %}
+                                    {% if user in post.author.followers.all %}
+                                      <form method="POST" action="{% url 'unsubscribe' post.author.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="unsubscribe-button button-red float-right">
+                                          <span>Отписаться</span>
+                                        </button>
+                                      </form>
+                                    {% else %}
+                                      <form method="POST" action="{% url 'subscribe' p.author.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="subscribe-button button-red float-right">
+                                          <span>Подписаться</span>
+                                        </button>
+                                      </form>
+                                    {% endif %}
+                                  {% endif %}
                                 </div>
+                                <h6 class="text-muted time">{{ post.created_at|date:"d-F Y" }}</h6>
+                              </div>
                                 <h6 class="text-muted time">{{ p.created_at|date:"d-F Y" }}</h6>
                             </div>
                         </div>

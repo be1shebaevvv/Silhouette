@@ -52,7 +52,7 @@ class User(AbstractUser):
         ('Женский', 'Женский'),
         ('Неизвестный','Неизвестный')
     )
-    gender = models.CharField(max_length=20, choices=GENDER_CHOICES, default='Неизвестный')
+    gender = models.CharField("Пол",max_length=20, choices=GENDER_CHOICES, default='Неизвестный')
 
 
     USERNAME_FIELD = 'username'
