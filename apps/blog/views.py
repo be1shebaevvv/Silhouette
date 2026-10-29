@@ -2,6 +2,7 @@ from django.contrib import messages as flash_messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
@@ -237,3 +238,15 @@ def report_comment(request, comment_id):
     else:
         flash_messages.error(request, "Не удалось отправить жалобу. Проверьте выбранную причину.")
     return redirect("post_detail", pk=comment.post_id)
+
+
+
+@login_required(login_url="login")
+@require_POST
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    if post.author_id != request.user.pk:
+        return HttpResponseForbidden("Удалять публикацию может только её автор.")
+    post.delete()
+    flash_messages.success(request, "Публикация удалена.")
+    return redirect("all")
