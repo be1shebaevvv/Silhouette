@@ -8,6 +8,7 @@ from django.urls import reverse_lazy
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, FormView, TemplateView
 
 from apps.accounts.forms import LoginForm, UserProfileForm, UserRegisterForm
@@ -121,6 +122,7 @@ def show_profile(request, username):
 
 
 @login_required(login_url="login")
+@require_POST
 def subscribe(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     if user.pk != request.user.pk:
@@ -130,6 +132,7 @@ def subscribe(request, user_id):
 
 
 @login_required(login_url="login")
+@require_POST
 def unsubscribe(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     user.followers.remove(request.user)
