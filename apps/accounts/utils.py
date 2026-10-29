@@ -13,6 +13,7 @@ token_generator = CustomTokenGenerator()
 def send_activation_email(user, request, to_email):
     context = {
         "domain": get_current_site(request),
+        "protocol": "https" if request.is_secure() else "http",
         "uid": urlsafe_base64_encode(force_bytes(user.pk)),
         "token": token_generator.make_token(user),
         "user": user,
