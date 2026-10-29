@@ -7,6 +7,9 @@ Silhouette is an anonymous-first social platform built with Django. Its goal is 
 - Python and Django
 - SQLite for local development
 - Django templates and static CSS
+- Email verification and password recovery
+- Pseudonymous profiles, user blocking, content reports, and moderator tools
+- Text-first posts, threaded comments, reactions, follows, and private messaging
 - Django REST Framework (API groundwork)
 
 ## Local setup
