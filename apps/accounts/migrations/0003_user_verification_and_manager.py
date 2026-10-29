@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.auth.models import UserManager as DjangoUserManager
 from django.db import migrations, models
 import apps.accounts.models
 
