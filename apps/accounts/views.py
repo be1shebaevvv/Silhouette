@@ -1,5 +1,6 @@
 import re
 
+from django.contrib import messages as flash_messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
@@ -134,8 +135,11 @@ def show_profile(request, username):
 def subscribe(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     if user.pk != request.user.pk:
-        user.followers.add(request.user)
-        request.user.subscriptions.add(user)
+        if request.user.blocked_users.filter(pk=user.pk).exists() or user.blocked_users.filter(pk=request.user.pk).exists():
+            flash_messages.error(request, "Подписка недоступна из-за настроек блокировки.")
+        else:
+            user.followers.add(request.user)
+            request.user.subscriptions.add(user)
     return redirect("profile", username=user.username)
 
 
@@ -145,6 +149,28 @@ def unsubscribe(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     user.followers.remove(request.user)
     request.user.subscriptions.remove(user)
+    return redirect("profile", username=user.username)
+
+@login_required(login_url="login")
+@require_POST
+def block_user(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+    if user.pk != request.user.pk:
+        request.user.blocked_users.add(user)
+        request.user.subscriptions.remove(user)
+        user.followers.remove(request.user)
+        request.user.followers.remove(user)
+        user.subscriptions.remove(request.user)
+        flash_messages.success(request, "Пользователь заблокирован. Переписка и подписка отключены.")
+    return redirect("profile", username=user.username)
+
+
+@login_required(login_url="login")
+@require_POST
+def unblock_user(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+    request.user.blocked_users.remove(user)
+    flash_messages.success(request, "Пользователь разблокирован.")
     return redirect("profile", username=user.username)
 
 
