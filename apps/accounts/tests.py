@@ -51,3 +51,20 @@ class UserManagerTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.wsgi_request.user.is_authenticated)
         self.assertContains(response, "Подтвердите адрес электронной почты")
+
+    def test_public_profile_does_not_expose_private_identity_fields(self):
+        user = User.objects.create_user(
+            username="pseudonymous",
+            password="Safe-test-password-42",
+            email="private@example.com",
+            first_name="PrivateFirst",
+            last_name="PrivateLast",
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("profil"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "private@example.com")
+        self.assertNotContains(response, "PrivateFirst")
+        self.assertNotContains(response, "PrivateLast")
