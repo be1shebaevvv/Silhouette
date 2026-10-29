@@ -7,6 +7,22 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterModelOptions(
+            name="category",
+            options={"ordering": ["name"], "verbose_name": "Категория", "verbose_name_plural": "Категории"},
+        ),
+        migrations.AlterModelOptions(
+            name="post",
+            options={"ordering": ["-created_at"], "verbose_name": "Публикация", "verbose_name_plural": "Публикации"},
+        ),
+        migrations.AlterModelOptions(
+            name="comment",
+            options={"ordering": ["created_at"], "verbose_name": "Комментарий", "verbose_name_plural": "Комментарии"},
+        ),
+        migrations.AlterModelOptions(
+            name="replaycomment",
+            options={"verbose_name": "Ответ на комментарий", "verbose_name_plural": "Ответы на комментарии"},
+        ),
         migrations.AlterField(
             model_name="post",
             name="media",
