@@ -1,7 +1,9 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.blog.forms import PostCreationForm
 from apps.blog.models import Comment, Post
 
 
@@ -70,3 +72,21 @@ class PostAndDiscussionTests(TestCase):
 
         self.client.post(url, {"action": "like"})
         self.assertFalse(self.post.likes.filter(pk=self.author.pk).exists())
+
+    def test_post_form_accepts_text_only_publication(self):
+        form = PostCreationForm(data={
+            "title": "Only text",
+            "description": "No file is required.",
+            "category": "",
+            "is_active": "on",
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_post_form_rejects_unapproved_file_extensions(self):
+        upload = SimpleUploadedFile("payload.html", b"<script>alert(1)</script>")
+        form = PostCreationForm(
+            data={"title": "Unsafe attachment", "description": "A file", "category": "", "is_active": "on"},
+            files={"media": upload},
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("media", form.errors)
