@@ -27,6 +27,13 @@ class PostAndDiscussionTests(TestCase):
         self.assertContains(response, "A text-only post")
         self.assertContains(response, "This should work without an uploaded file.")
 
+    def test_homepage_renders_popular_and_recent_posts(self):
+        response = self.client.get(reverse("list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "A text-only post")
+        self.assertContains(response, "Приватность — в основе")
+
     def test_only_author_can_edit_post(self):
         other_user = User.objects.create_user(
             username="other_user",
