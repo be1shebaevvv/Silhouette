@@ -54,3 +54,10 @@ class UserProfileForm(UserChangeForm):
             "email": "Электронная почта (не отображается в профиле)",
             "image": "Аватар (необязательно)",
         }
+
+
+class DeleteAccountForm(forms.Form):
+    password = forms.CharField(
+        label="Текущий пароль",
+        widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "current-password"}),
+    )
