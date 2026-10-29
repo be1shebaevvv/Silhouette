@@ -1,123 +1,113 @@
 {% extends 'base.html' %}
 
-{% block content %}
+{% block title %}{{ post.title }} — Silhouette{% endblock %}
 
-<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
-<div class="container">
-  <div class="row">
-    <div class="col-sm-8 col-sm-offset-2">
-      <div class="panel panel-white post">
-        <!-- Post header -->
-        <div class="post-heading">
-          <!-- Author image -->
-          <div class="pull-left image">
-            {% if post.author.image %}
-              <img src="{{ post.author.image.url }}" class="img-circle avatar" alt="Profile image">
-            {% else %}
-              <img src="silhouette/media_sites/avatar.png" class="img-circle avatar" alt="Profile image">
-            {% endif %}
-          </div>
-          <!-- Author name and publish time -->
-          <div class="pull-left meta">
-            <div class="title h5">
-                <a href="{% url 'profile' post.author.username %}" style="text-decoration: none;"><b>{{ post.author }}</b> </a>
-                {% if user.is_authenticated and user != post.author %}
-                {% if user in post.author.followers.all %}
-                  <form method="POST" action="{% url 'unsubscribe' post.author.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="unsubscribe-button button-red float-right" style="color: red;">
-                      <span>Отписаться</span>
-                    </button>
-                  </form>
-                {% else %}
-                  <form method="POST" action="{% url 'subscribe' post.author.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="subscribe-button button-red float-right" style="color: red;">
-                      <span>Подписаться</span>
-                    </button>
-                  </form>
-                {% endif %}
-              {% endif %}
-            </div>
-            <h6 class="text-muted time">{{ post.created_at|date:"d-F Y" }}</h6>
-          </div>
-        </div>
-        <div class="post-image">
-          {% if post.media.name|lower|slice:'-3:' == 'mp4' %}
-          <a href="#">
-            <video src="{{ post.media.url }}" controls style="width:838px; height: 800px;  object-fit: contain;"></video>
-          </a>
-          {% else %}
-          <a href="#">
-            <img src="{{ post.media.url }}" alt="" class="image">
-          </a>
-          {% endif %}
-        </div>
-        <div class="post_active">
-          <h4>{{ post.title }}</h4>
-        </div>
-        <div class="post-description">
-          <h4></h4>
-          <p>{{ post.description }}</p>
-        </div>
-        <div class="stats">
-          <form method="POST" action="{% url 'like_dislike_post' post.id %}">
-            {% csrf_token %}
-            <button type="submit" name="action" value="like" class="like-button">
-              <span>Лайк</span>
-              <span class="count">{{ like_count }}</span>
-            </button>
-            <button type="submit" name="action" value="dislike" class="dislike-button">
-              <span>Дизлайк</span>
-              <span class="count">{{ dislike_count }}</span>
-            </button>
-          </form>
-          {% if user == post.author %}
-          <button style="color: black; background-color: red  ;">
-            <a href="{% url 'post-edit' post.pk %}" style="color: aliceblue;">Изменить</a>
-          </button>
-          </a>
-          {% endif %}
-          </a>
-        </div>
-        <div class="post-footer">
-          <div class="input-group">
-            <form role="form" method="post" action="{% url 'save_comment' post.id %}">
-              {% csrf_token %}
-              <input class="form-control" placeholder="Добавить комментарий" name="text" type="text">
-              <div class="clearfix float-right">
-                <button type="submit" class="btn btn-primary btn-lg">Опубликовать</button>
-              </div>
-            </form>
-          </div>
-          <ul class="comments-list">
-            {% for comment in post.post_comments.all %}
-              <li class="comment">
-                <a class="pull-left" href="javascript:void(0);">
-                  {% if comment.author.image %}
-                    <img class="avatar" src="{{ comment.author.image.url }}" alt="avatar">
-                  {% else %}
-                  <img class="avatar" src="{{ comment.author.image.url }}" alt="avatar">
-                  {% endif %}
-                </a>
-                <div class="comment-body">
-                  <div class="comment-heading">
-                    <h4 class="user">{{ comment.author }}</h4>
-                    <h5 class="time">{{ comment.created_at }}</h5>
-                  </div>
-                  <p>{{ comment.text }}</p>
-                  <div class="reply-form-container" id="reply-form-container-{{ comment.id }}">
-                    <form role="form" method="post" action="{% url 'save_comment' post.id %}">
-                      {% csrf_token %}
-                    </form>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
+{% block content %}
+<article class="card border-0 shadow-sm rounded-4 overflow-hidden mx-auto" style="max-width: 900px;">
+  <div class="card-body p-4 p-md-5">
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold" style="width: 44px; height: 44px;">
+        {{ post.author.username|first|upper }}
       </div>
+      <div class="flex-grow-1">
+        <a href="{% url 'profile' post.author.username %}" class="fw-semibold text-decoration-none text-dark">{{ post.author.username }}</a>
+        <div class="text-secondary small">{{ post.created_at|date:"d.m.Y H:i" }}</div>
+      </div>
+      {% if user.is_authenticated and user != post.author %}
+        {% if user in post.author.followers.all %}
+          <form method="post" action="{% url 'unsubscribe' post.author.id %}">
+            {% csrf_token %}<button class="btn btn-outline-secondary btn-sm" type="submit">Отписаться</button>
+          </form>
+        {% else %}
+          <form method="post" action="{% url 'subscribe' post.author.id %}">
+            {% csrf_token %}<button class="btn btn-outline-dark btn-sm" type="submit">Подписаться</button>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <h1 class="h3 mb-3">{{ post.title }}</h1>
+    <div class="fs-6" style="white-space: pre-wrap; overflow-wrap: anywhere;">{{ post.description }}</div>
+
+    {% if post.media %}
+      <div class="mt-4">
+        {% if post.is_video %}
+          <video src="{{ post.media.url }}" controls preload="metadata" class="w-100 rounded-3" style="max-height: 680px;"></video>
+        {% else %}
+          <img src="{{ post.media.url }}" alt="Медиа к публикации «{{ post.title }}»" class="img-fluid rounded-3 w-100" style="max-height: 680px; object-fit: contain;">
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if post.category %}
+      <span class="badge text-bg-light border mt-3">{{ post.category.name }}</span>
+    {% endif %}
+
+    <div class="d-flex align-items-center gap-3 border-top mt-4 pt-3">
+      <form method="post" action="{% url 'like_dislike_post' post.id %}" class="d-flex gap-2">
+        {% csrf_token %}
+        <button type="submit" name="action" value="like" class="btn btn-sm btn-outline-primary">Нравится · {{ like_count }}</button>
+        <button type="submit" name="action" value="dislike" class="btn btn-sm btn-outline-secondary">Не нравится · {{ dislike_count }}</button>
+      </form>
+      {% if user.is_authenticated and user == post.author %}
+        <a href="{% url 'post-edit' post.pk %}" class="btn btn-sm btn-outline-dark ms-auto">Редактировать</a>
+      {% endif %}
     </div>
   </div>
-</div>  
+</article>
 
+<section class="mx-auto mt-4" style="max-width: 900px;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 mb-0">Обсуждение</h2>
+    <span class="text-secondary small">{{ comment_count }} комментариев</span>
+  </div>
+
+  {% if user.is_authenticated %}
+    <form method="post" action="{% url 'save_comment' post.id %}" class="card border-0 shadow-sm rounded-4 mb-4">
+      {% csrf_token %}
+      <div class="card-body">
+        <label for="comment-text" class="form-label">Оставить комментарий</label>
+        <textarea id="comment-text" class="form-control mb-3" name="text" rows="3" maxlength="5000" required placeholder="Ответьте по существу и уважайте других участников."></textarea>
+        <button type="submit" class="btn btn-dark">Опубликовать</button>
+      </div>
+    </form>
+  {% else %}
+    <div class="alert alert-light border">Чтобы участвовать в обсуждении, <a href="{% url 'login' %}">войдите</a> или <a href="{% url 'register' %}">создайте псевдонимный аккаунт</a>.</div>
+  {% endif %}
+
+  {% for comment in comments %}
+    <div class="card border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between gap-3">
+          <strong>{{ comment.author.username }}</strong>
+          <time class="text-secondary small">{{ comment.created_at|date:"d.m.Y H:i" }}</time>
+        </div>
+        <p class="mb-2 mt-2" style="white-space: pre-wrap; overflow-wrap: anywhere;">{{ comment.text }}</p>
+
+        {% for reply in comment.replies.all %}
+          <div class="border-start ps-3 ms-2 mt-3">
+            <div class="d-flex justify-content-between gap-3">
+              <strong>{{ reply.author.username }}</strong>
+              <time class="text-secondary small">{{ reply.created_at|date:"d.m.Y H:i" }}</time>
+            </div>
+            <p class="mb-0 mt-1" style="white-space: pre-wrap; overflow-wrap: anywhere;">{{ reply.text }}</p>
+          </div>
+        {% endfor %}
+
+        {% if user.is_authenticated %}
+          <details class="mt-3">
+            <summary class="small text-secondary">Ответить</summary>
+            <form method="post" action="{% url 'reply_to_comment' comment.id %}" class="mt-2">
+              {% csrf_token %}
+              <textarea class="form-control mb-2" name="text" rows="2" maxlength="5000" required placeholder="Ваш ответ"></textarea>
+              <button type="submit" class="btn btn-sm btn-outline-dark">Отправить ответ</button>
+            </form>
+          </details>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <div class="card border-0 rounded-4"><div class="card-body text-secondary">Пока нет комментариев. Начните обсуждение.</div></div>
+  {% endfor %}
+</section>
 {% endblock %}
