@@ -5,7 +5,7 @@ from apps.accounts.models import User
 
 class Category(models.Model):
     name = models.CharField("Название", max_length=100)
-    slug = models.SlugField(max_length=150, unique=True)
+    slug = models.SlugField(max_length=150)
 
     class Meta:
         verbose_name = "Категория"
