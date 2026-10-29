@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, FormView, TemplateView
 
 from apps.accounts.forms import LoginForm, UserProfileForm, UserRegisterForm
@@ -40,6 +41,7 @@ class LoginView(FormView):
         return redirect("feed")
 
 
+@require_POST
 def user_logout(request):
     if request.user.is_authenticated:
         logout(request)
