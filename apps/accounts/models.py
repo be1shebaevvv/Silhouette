@@ -47,6 +47,7 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=True)
     followers = models.ManyToManyField("self", related_name="following", symmetrical=False)
     subscriptions = models.ManyToManyField("self", related_name="subscribers", symmetrical=False)
+    blocked_users = models.ManyToManyField("self", related_name="blocked_by", symmetrical=False, blank=True)
     login = models.DateTimeField(null=True, blank=True)
 
     GENDER_CHOICES = (
