@@ -1,3 +1,4 @@
+from django.contrib import messages as flash_messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count
@@ -7,8 +8,8 @@ from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from apps.accounts.models import User
-from apps.blog.forms import CommentForm, PostCreationForm, PostForm
-from apps.blog.models import Comment, Post
+from apps.blog.forms import CommentForm, PostCreationForm, PostForm, ReportForm
+from apps.blog.models import Comment, Post, Report
 
 
 class PostListViews(ListView):
@@ -189,3 +190,50 @@ def top_posts_view(request):
         .order_by("-like_count", "-created_at")[:3]
     )
     return render(request, "index1.html", {"top_posts": top_posts})
+
+
+
+@login_required(login_url="login")
+@require_POST
+def report_post(request, post_id):
+    post = get_object_or_404(Post, pk=post_id, is_active=True)
+    if post.author_id == request.user.pk:
+        flash_messages.error(request, "Нельзя отправить жалобу на собственную публикацию.")
+        return redirect("post_detail", pk=post.pk)
+    if Report.objects.filter(reporter=request.user, post=post).exists():
+        flash_messages.info(request, "Вы уже отправили жалобу на эту публикацию.")
+        return redirect("post_detail", pk=post.pk)
+
+    form = ReportForm(request.POST)
+    if form.is_valid():
+        report = form.save(commit=False)
+        report.reporter = request.user
+        report.post = post
+        report.save()
+        flash_messages.success(request, "Жалоба отправлена модераторам.")
+    else:
+        flash_messages.error(request, "Не удалось отправить жалобу. Проверьте выбранную причину.")
+    return redirect("post_detail", pk=post.pk)
+
+
+@login_required(login_url="login")
+@require_POST
+def report_comment(request, comment_id):
+    comment = get_object_or_404(Comment.objects.select_related("post"), pk=comment_id)
+    if comment.author_id == request.user.pk:
+        flash_messages.error(request, "Нельзя отправить жалобу на собственный комментарий.")
+        return redirect("post_detail", pk=comment.post_id)
+    if Report.objects.filter(reporter=request.user, comment=comment).exists():
+        flash_messages.info(request, "Вы уже отправили жалобу на этот комментарий.")
+        return redirect("post_detail", pk=comment.post_id)
+
+    form = ReportForm(request.POST)
+    if form.is_valid():
+        report = form.save(commit=False)
+        report.reporter = request.user
+        report.comment = comment
+        report.save()
+        flash_messages.success(request, "Жалоба отправлена модераторам.")
+    else:
+        flash_messages.error(request, "Не удалось отправить жалобу. Проверьте выбранную причину.")
+    return redirect("post_detail", pk=comment.post_id)
