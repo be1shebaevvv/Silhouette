@@ -42,6 +42,21 @@
     {% if post.category %}
       <span class="badge text-bg-light border mt-3">{{ post.category.name }}</span>
     {% endif %}
+    {% if user.is_authenticated and user != post.author %}
+      <details class="mt-3">
+        <summary class="small text-secondary">Пожаловаться на публикацию</summary>
+        <form method="post" action="{% url 'report_post' post.id %}" class="mt-2 p-3 bg-light rounded-3">
+          {% csrf_token %}
+          <label class="form-label" for="post-report-reason">Причина</label>
+          <select id="post-report-reason" class="form-select mb-2" name="reason" required>
+            <option value="spam">Спам</option><option value="harassment">Травля или угрозы</option><option value="privacy">Раскрытие личных данных</option><option value="hate">Ненависть или опасный контент</option><option value="other">Другое</option>
+          </select>
+          <label class="form-label" for="post-report-details">Подробности (необязательно)</label>
+          <textarea id="post-report-details" class="form-control mb-2" name="details" rows="2" maxlength="2000"></textarea>
+          <button type="submit" class="btn btn-sm btn-outline-danger">Отправить жалобу</button>
+        </form>
+      </details>
+    {% endif %}
 
     <div class="d-flex align-items-center gap-3 border-top mt-4 pt-3">
       <form method="post" action="{% url 'like_dislike_post' post.id %}" class="d-flex gap-2">
@@ -95,14 +110,29 @@
         {% endfor %}
 
         {% if user.is_authenticated %}
-          <details class="mt-3">
-            <summary class="small text-secondary">Ответить</summary>
-            <form method="post" action="{% url 'reply_to_comment' comment.id %}" class="mt-2">
-              {% csrf_token %}
-              <textarea class="form-control mb-2" name="text" rows="2" maxlength="5000" required placeholder="Ваш ответ"></textarea>
-              <button type="submit" class="btn btn-sm btn-outline-dark">Отправить ответ</button>
-            </form>
-          </details>
+          <div class="d-flex flex-wrap gap-3 mt-3">
+            <details>
+              <summary class="small text-secondary">Ответить</summary>
+              <form method="post" action="{% url 'reply_to_comment' comment.id %}" class="mt-2">
+                {% csrf_token %}
+                <textarea class="form-control mb-2" name="text" rows="2" maxlength="5000" required placeholder="Ваш ответ"></textarea>
+                <button type="submit" class="btn btn-sm btn-outline-dark">Отправить ответ</button>
+              </form>
+            </details>
+            {% if user != comment.author %}
+              <details>
+                <summary class="small text-secondary">Пожаловаться</summary>
+                <form method="post" action="{% url 'report_comment' comment.id %}" class="mt-2">
+                  {% csrf_token %}
+                  <select class="form-select mb-2" name="reason" required aria-label="Причина жалобы">
+                    <option value="spam">Спам</option><option value="harassment">Травля или угрозы</option><option value="privacy">Раскрытие личных данных</option><option value="hate">Ненависть или опасный контент</option><option value="other">Другое</option>
+                  </select>
+                  <textarea class="form-control mb-2" name="details" rows="2" maxlength="2000" placeholder="Подробности (необязательно)"></textarea>
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Отправить жалобу</button>
+                </form>
+              </details>
+            {% endif %}
+          </div>
         {% endif %}
       </div>
     </div>
