@@ -1,6 +1,31 @@
-media/
-.idea/
+# Python
 __pycache__/
-*.pyc
-db.sqlite3
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
 
+# Django/local data
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Test/build artifacts
+.coverage
+htmlcov/
+.pytest_cache/
