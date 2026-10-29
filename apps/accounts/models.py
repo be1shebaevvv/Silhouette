@@ -43,6 +43,8 @@ class User(AbstractUser):
     )
     date_of_birth = models.DateField("Дата рождения", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # Existing accounts stay verified; registration explicitly sets this to False.
+    is_verified = models.BooleanField(default=True)
     followers = models.ManyToManyField("self", related_name="following", symmetrical=False)
     subscriptions = models.ManyToManyField("self", related_name="subscribers", symmetrical=False)
     login = models.DateTimeField(null=True, blank=True)
