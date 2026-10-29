@@ -2,7 +2,7 @@ from pathlib import Path
 
 from django import forms
 
-from apps.blog.models import Category, Comment, Post
+from apps.blog.models import Category, Comment, Post, Report
 
 
 class CommentForm(forms.ModelForm):
@@ -131,8 +131,6 @@ class PostForm(forms.ModelForm):
 
 class ReportForm(forms.ModelForm):
     class Meta:
-        from apps.blog.models import Report
-
         model = Report
         fields = ["reason", "details"]
         widgets = {
