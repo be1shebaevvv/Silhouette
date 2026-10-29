@@ -128,18 +128,18 @@
                     </div>
                     <div class="post-description">
                         <h4>{{ post.title }}</h4>
-                        <p>{{ post.description|truncatewords:50|safe }}</p>
+                        <p>{{ post.description|truncatewords:50 }}</p>
                     </div>
                     <div class="post-footer">
                         <form method="POST" action="{% url 'like_dislike_post' post.id %}">
                             {% csrf_token %}
                             <button type="submit" name="action" value="like" class="like-button">
                                 <span>Лайк</span>
-                                <span class="count">{{ like_count }}</span>
+                                <span class="count">{{ post.likes.count }}</span>
                             </button>
                             <button type="submit" name="action" value="dislike" class="dislike-button">
                                 <span>Дизлайк</span>
-                                <span class="count">{{ dislike_count }}</span>
+                                <span class="count">{{ post.dislikes.count }}</span>
                             </button>
                         </form>
                     </div>
