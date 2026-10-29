@@ -48,3 +48,12 @@ class PrivateChatTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "@bob")
         self.assertNotContains(response, "@alice")
+
+
+    def test_blocked_users_cannot_open_private_chat(self):
+        self.client.force_login(self.alice)
+        self.alice.blocked_users.add(self.bob)
+
+        response = self.client.get(reverse("chats", kwargs={"recipient_id": self.bob.pk}))
+
+        self.assertEqual(response.status_code, 403)
