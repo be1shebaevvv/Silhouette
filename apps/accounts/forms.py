@@ -67,5 +67,9 @@ class DeleteAccountForm(forms.Form):
 class VerifiedPasswordResetForm(PasswordResetForm):
     """Only send password-reset links to verified accounts."""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["email"].widget.attrs.update({"class": "form-control", "autocomplete": "email"})
+
     def get_users(self, email):
         return (user for user in super().get_users(email) if user.is_verified)
