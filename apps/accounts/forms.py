@@ -44,6 +44,13 @@ class UserProfileForm(UserChangeForm):
     class Meta:
         model = User
         fields = ["username", "email", "image"]
+
+    def clean_image(self):
+        image = self.cleaned_data.get("image")
+        if image and hasattr(image, "size") and image.size > 5 * 1024 * 1024:
+            raise forms.ValidationError("Размер аватара не должен превышать 5 МБ.")
+        return image
+
         widgets = {
             "username": forms.TextInput(attrs={"class": "form-control", "autocomplete": "username"}),
             "email": forms.EmailInput(attrs={"class": "form-control", "autocomplete": "email"}),
