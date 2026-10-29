@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, FormView, TemplateView
 
-from apps.accounts.forms import LoginForm, UserProfileForm, UserRegisterForm
+from apps.accounts.forms import DeleteAccountForm, LoginForm, UserProfileForm, UserRegisterForm
 from apps.accounts.models import User
 from apps.accounts.token import CustomTokenGenerator
 from apps.accounts.utils import send_activation_email
@@ -207,3 +207,19 @@ def search_results(request):
         "search.html",
         {"users": users, "posts": posts.distinct(), "category": category, "query": query},
     )
+
+
+
+@login_required(login_url="login")
+@require_POST
+def delete_account(request):
+    form = DeleteAccountForm(request.POST)
+    if not form.is_valid() or not request.user.check_password(form.cleaned_data["password"]):
+        flash_messages.error(request, "Аккаунт не удалён: проверьте текущий пароль.")
+        return redirect("edit_profile")
+
+    user = request.user
+    logout(request)
+    user.delete()
+    flash_messages.success(request, "Аккаунт и связанные с ним данные удалены.")
+    return redirect("list")
