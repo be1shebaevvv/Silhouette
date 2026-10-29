@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.blog.forms import PostCreationForm
+from apps.blog.forms import PostCreationForm, PostForm
 from apps.blog.models import Comment, Post, Report
 
 
@@ -97,6 +97,17 @@ class PostAndDiscussionTests(TestCase):
         )
         self.assertFalse(form.is_valid())
         self.assertIn("media", form.errors)
+
+    def test_post_edit_form_rejects_empty_title_and_description(self):
+        form = PostForm(data={
+            "title": "   ",
+            "description": "   ",
+            "category": "",
+            "is_active": "on",
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn("title", form.errors)
+        self.assertIn("description", form.errors)
 
 
 class ContentReportingTests(TestCase):
