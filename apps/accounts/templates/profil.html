@@ -38,6 +38,11 @@
           {% else %}
             <form method="post" action="{% url 'subscribe' user.id %}">{% csrf_token %}<button type="submit" class="btn btn-dark">Подписаться</button></form>
           {% endif %}
+          {% if user in request.user.blocked_users.all %}
+            <form method="post" action="{% url 'unblock_user' user.id %}">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary">Разблокировать</button></form>
+          {% else %}
+            <form method="post" action="{% url 'block_user' user.id %}" onsubmit="return confirm('Заблокировать пользователя? Он не сможет писать вам сообщения.');">{% csrf_token %}<button type="submit" class="btn btn-outline-danger">Заблокировать</button></form>
+          {% endif %}
         {% endif %}
       </div>
 
