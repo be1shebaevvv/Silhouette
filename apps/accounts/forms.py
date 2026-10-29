@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.forms import PasswordResetForm, UserChangeForm, UserCreationForm
 
 from apps.accounts.models import User
 
@@ -61,3 +61,11 @@ class DeleteAccountForm(forms.Form):
         label="Текущий пароль",
         widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "current-password"}),
     )
+
+
+
+class VerifiedPasswordResetForm(PasswordResetForm):
+    """Only send password-reset links to verified accounts."""
+
+    def get_users(self, email):
+        return (user for user in super().get_users(email) if user.is_verified)
