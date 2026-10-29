@@ -34,6 +34,12 @@ class ReplayCommentForm(CommentForm):
 
 
 class PostCreationForm(forms.ModelForm):
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(
+            attrs={"class": "form-control", "rows": 6, "maxlength": 10000, "placeholder": "Чем хотите поделиться?"}
+        ),
+    )
     category = forms.ModelChoiceField(
         queryset=Category.objects.all(),
         widget=forms.Select(attrs={"class": "form-select"}),
@@ -71,9 +77,13 @@ class PostCreationForm(forms.ModelForm):
         description = self.cleaned_data["description"].strip()
         if len(description) > 10000:
             raise forms.ValidationError("Текст не должен превышать 10000 символов.")
-        if not description and not self.cleaned_data.get("media"):
-            raise forms.ValidationError("Добавьте текст или медиафайл.")
         return description
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get("description") and not cleaned_data.get("media"):
+            self.add_error("description", "Добавьте текст или медиафайл.")
+        return cleaned_data
 
     def clean_media(self):
         media = self.cleaned_data.get("media")
