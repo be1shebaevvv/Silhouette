@@ -34,6 +34,12 @@ class Post(models.Model):
         verbose_name_plural = "Публикации"
         ordering = ["-created_at"]
 
+    @property
+    def is_video(self):
+        if not self.media:
+            return False
+        return self.media.name.lower().endswith((".mp4", ".webm", ".mov", ".m4v"))
+
     def __str__(self):
         return self.title
 
