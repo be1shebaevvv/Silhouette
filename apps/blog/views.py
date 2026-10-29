@@ -1,7 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count
-from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
@@ -9,7 +8,7 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from apps.accounts.models import User
 from apps.blog.forms import CommentForm, PostCreationForm, PostForm
-from apps.blog.models import Category, Comment, Post
+from apps.blog.models import Comment, Post
 
 
 class PostListViews(ListView):
@@ -22,7 +21,7 @@ class PostListViews(ListView):
         return (
             Post.objects.filter(is_active=True)
             .select_related("author", "category")
-            .prefetch_related("likes", "dislikes")
+            .prefetch_related("likes", "dislikes", "post_comments")
             .order_by("-created_at")
         )
 
@@ -177,6 +176,7 @@ def feed(request):
     posts = (
         Post.objects.filter(author__in=subscribed_users, is_active=True)
         .select_related("author", "category")
+        .prefetch_related("likes", "post_comments")
         .order_by("-created_at")
     )
     return render(request, "feed.html", {"posts": posts})
