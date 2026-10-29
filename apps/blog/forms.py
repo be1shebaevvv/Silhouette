@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django import forms
 
 from apps.blog.models import Category, Comment, Post
@@ -17,6 +19,14 @@ class CommentForm(forms.ModelForm):
                 }
             )
         }
+
+    def clean_text(self):
+        text = self.cleaned_data["text"].strip()
+        if not text:
+            raise forms.ValidationError("Комментарий не может быть пустым.")
+        if len(text) > 5000:
+            raise forms.ValidationError("Комментарий не должен превышать 5000 символов.")
+        return text
 
 
 class ReplayCommentForm(CommentForm):
@@ -45,11 +55,43 @@ class PostCreationForm(forms.ModelForm):
                 attrs={"class": "form-control", "maxlength": 100, "placeholder": "Заголовок"}
             ),
             "description": forms.Textarea(
-                attrs={"class": "form-control", "rows": 6, "placeholder": "Чем хотите поделиться?"}
+                attrs={"class": "form-control", "rows": 6, "maxlength": 10000, "placeholder": "Чем хотите поделиться?"}
             ),
-            "media": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "media": forms.ClearableFileInput(attrs={"class": "form-control", "accept": ".jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov,.m4v"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+    def clean_title(self):
+        title = self.cleaned_data["title"].strip()
+        if not title:
+            raise forms.ValidationError("Добавьте заголовок.")
+        return title
+
+    def clean_description(self):
+        description = self.cleaned_data["description"].strip()
+        if len(description) > 10000:
+            raise forms.ValidationError("Текст не должен превышать 10000 символов.")
+        if not description and not self.cleaned_data.get("media"):
+            raise forms.ValidationError("Добавьте текст или медиафайл.")
+        return description
+
+    def clean_media(self):
+        media = self.cleaned_data.get("media")
+        if not media or not hasattr(media, "name"):
+            return media
+
+        extension = Path(media.name).suffix.lower()
+        image_extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+        video_extensions = {".mp4", ".webm", ".mov", ".m4v"}
+        allowed_extensions = image_extensions | video_extensions
+
+        if extension not in allowed_extensions:
+            raise forms.ValidationError("Разрешены только изображения JPG, PNG, GIF, WebP и видео MP4, WebM, MOV.")
+        max_size = 15 * 1024 * 1024 if extension in image_extensions else 50 * 1024 * 1024
+        if media.size > max_size:
+            limit_mb = max_size // (1024 * 1024)
+            raise forms.ValidationError(f"Размер этого файла не должен превышать {limit_mb} МБ.")
+        return media
 
 
 class PostForm(forms.ModelForm):
@@ -58,7 +100,19 @@ class PostForm(forms.ModelForm):
         fields = ["title", "description", "is_active", "category"]
         widgets = {
             "title": forms.TextInput(attrs={"class": "form-control"}),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 6}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 6, "maxlength": 10000}),
             "category": forms.Select(attrs={"class": "form-select"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+    def clean_title(self):
+        title = self.cleaned_data["title"].strip()
+        if not title:
+            raise forms.ValidationError("Добавьте заголовок.")
+        return title
+
+    def clean_description(self):
+        description = self.cleaned_data["description"].strip()
+        if len(description) > 10000:
+            raise forms.ValidationError("Текст не должен превышать 10000 символов.")
+        return description
