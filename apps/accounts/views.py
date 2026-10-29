@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from ratelimit.decorators import ratelimit
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.views.decorators.http import require_POST
@@ -19,6 +21,7 @@ from apps.accounts.utils import send_activation_email
 from apps.blog.models import Post
 
 
+@method_decorator(ratelimit(key="ip", rate="10/m", method="POST", block=True), name="dispatch")
 class LoginView(FormView):
     template_name = "login.html"
     form_class = LoginForm
@@ -54,6 +57,7 @@ class RegisterDoneView(TemplateView):
     template_name = "register_done.html"
 
 
+@method_decorator(ratelimit(key="ip", rate="3/h", method="POST", block=True), name="dispatch")
 class UserRegisterView(CreateView):
     model = User
     template_name = "register.html"
