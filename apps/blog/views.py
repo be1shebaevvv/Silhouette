@@ -29,7 +29,13 @@ class PostListViews(ListView):
 
 
 def listviews(request):
-    return render(request, "index1.html")
+    active_posts = Post.objects.filter(is_active=True).select_related("author", "category")
+    top_posts = (
+        active_posts.annotate(like_count=Count("likes", distinct=True))
+        .order_by("-like_count", "-created_at")[:3]
+    )
+    recent_posts = active_posts.order_by("-created_at")[:6]
+    return render(request, "index1.html", {"top_posts": top_posts, "recent_posts": recent_posts})
 
 
 class RecomentPost(ListView):
