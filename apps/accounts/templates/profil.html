@@ -32,17 +32,22 @@
           <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="btn btn-outline-danger">Выйти</button></form>
           <a href="{% url 'add_post' %}" class="btn btn-outline-dark">Новая публикация</a>
         {% elif request.user.is_authenticated %}
-          <a href="{% url 'chats' user.id %}" class="btn btn-outline-dark">Написать сообщение</a>
-          {% if request.user in user.followers.all %}
-            <form method="post" action="{% url 'unsubscribe' user.id %}">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary">Отписаться</button></form>
-          {% else %}
-            <form method="post" action="{% url 'subscribe' user.id %}">{% csrf_token %}<button type="submit" class="btn btn-dark">Подписаться</button></form>
-          {% endif %}
           {% if user in request.user.blocked_users.all %}
             <form method="post" action="{% url 'unblock_user' user.id %}">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary">Разблокировать</button></form>
           {% else %}
-            <form method="post" action="{% url 'block_user' user.id %}" onsubmit="return confirm('Заблокировать пользователя? Он не сможет писать вам сообщения.');">{% csrf_token %}<button type="submit" class="btn btn-outline-danger">Заблокировать</button></form>
+            {% if request.user in user.blocked_by.all %}
+              <span class="text-secondary small align-self-center">Взаимодействие недоступно из-за настроек приватности.</span>
+            {% else %}
+              <a href="{% url 'chats' user.id %}" class="btn btn-outline-dark">Написать сообщение</a>
+              {% if request.user in user.followers.all %}
+                <form method="post" action="{% url 'unsubscribe' user.id %}">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary">Отписаться</button></form>
+              {% else %}
+                <form method="post" action="{% url 'subscribe' user.id %}">{% csrf_token %}<button type="submit" class="btn btn-dark">Подписаться</button></form>
+              {% endif %}
+              <form method="post" action="{% url 'block_user' user.id %}" onsubmit="return confirm('Заблокировать пользователя? Он не сможет писать вам сообщения.');">{% csrf_token %}<button type="submit" class="btn btn-outline-danger">Заблокировать</button></form>
+            {% endif %}
           {% endif %}
+
         {% endif %}
       </div>
 
