@@ -81,6 +81,16 @@ class PostCreationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        title = cleaned_data.get("title", "").strip()
+        description = cleaned_data.get("description", "").strip()
+        if not title:
+            self.add_error("title", "Добавьте заголовок.")
+        if not description:
+            self.add_error("description", "Текст публикации не может быть пустым.")
+        return cleaned_data
+
+    def clean(self):
+        cleaned_data = super().clean()
         if not cleaned_data.get("description") and not cleaned_data.get("media"):
             self.add_error("description", "Добавьте текст или медиафайл.")
         return cleaned_data
