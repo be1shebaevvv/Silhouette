@@ -107,8 +107,16 @@ def edit_profile(request):
     if request.method == "POST":
         form = UserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
-            form.save()
-            return redirect("profile", username=request.user.username)
+            previous_email = request.user.email
+            updated_user = form.save(commit=False)
+            if updated_user.email != previous_email:
+                updated_user.is_verified = False
+                updated_user.save()
+                send_activation_email(updated_user, request=request, to_email=updated_user.email)
+                logout(request)
+                return redirect("register_done")
+            updated_user.save()
+            return redirect("profile", username=updated_user.username)
     else:
         form = UserProfileForm(instance=request.user)
 
