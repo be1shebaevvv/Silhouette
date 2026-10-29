@@ -15,4 +15,6 @@ urlpatterns = [
     path("post/<int:post_id>/like_dislike/", views.like_dislike_post, name="like_dislike_post"),
     path("content/post/<int:pk>/edit/", views.PostUpdateView.as_view(), name="post-edit"),
     path("feed/", views.feed, name="feed"),
+    path("post/<int:post_id>/report/", views.report_post, name="report_post"),
+    path("comment/<int:comment_id>/report/", views.report_comment, name="report_comment"),
 ]
