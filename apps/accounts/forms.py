@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.auth.forms import PasswordResetForm, UserChangeForm, UserCreationForm
 
@@ -44,23 +46,32 @@ class UserProfileForm(UserChangeForm):
     class Meta:
         model = User
         fields = ["username", "email", "image"]
-
-    def clean_image(self):
-        image = self.cleaned_data.get("image")
-        if image and hasattr(image, "size") and image.size > 5 * 1024 * 1024:
-            raise forms.ValidationError("Размер аватара не должен превышать 5 МБ.")
-        return image
-
         widgets = {
-            "username": forms.TextInput(attrs={"class": "form-control", "autocomplete": "username"}),
+            "username": forms.TextInput(attrs={"class": "form-control", "autocomplete": "username", "maxlength": 150}),
             "email": forms.EmailInput(attrs={"class": "form-control", "autocomplete": "email"}),
-            "image": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "image": forms.ClearableFileInput(attrs={"class": "form-control", "accept": ".jpg,.jpeg,.png,.webp"}),
         }
         labels = {
             "username": "Публичный никнейм",
             "email": "Электронная почта (не отображается в профиле)",
             "image": "Аватар (необязательно)",
         }
+
+    def clean_username(self):
+        username = self.cleaned_data["username"].strip()
+        if not re.fullmatch(r"[A-Za-z0-9_]+", username):
+            raise forms.ValidationError("Используйте английские буквы, цифры и знак подчёркивания.")
+        return username
+
+    def clean_image(self):
+        image = self.cleaned_data.get("image")
+        if image and hasattr(image, "size"):
+            if image.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Размер аватара не должен превышать 5 МБ.")
+            extension = image.name.rsplit(".", 1)[-1].lower() if "." in image.name else ""
+            if extension not in {"jpg", "jpeg", "png", "webp"}:
+                raise forms.ValidationError("Разрешены аватары JPG, PNG и WebP.")
+        return image
 
 
 class DeleteAccountForm(forms.Form):
