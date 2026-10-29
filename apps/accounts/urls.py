@@ -9,6 +9,7 @@ urlpatterns = [
     path("register/done/", views.RegisterDoneView.as_view(), name="register_done"),
     path("register/", views.UserRegisterView.as_view(), name="register"),
     path("edit_profile/", views.edit_profile, name="edit_profile"),
+    path("delete-account/", views.delete_account, name="delete_account"),
     path("profile/<str:username>/", views.show_profile, name="profile"),
     path("subscribe/<int:user_id>/", views.subscribe, name="subscribe"),
     path("unsubscribe/<int:user_id>/", views.unsubscribe, name="unsubscribe"),
