@@ -1,10 +1,12 @@
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.tokens import default_token_generator
 from django.test import TestCase, override_settings
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.urls import reverse
 
+from apps.accounts.forms import UserProfileForm
 from apps.accounts.models import User
 from apps.accounts.token import CustomTokenGenerator
 
@@ -207,3 +209,50 @@ class UserManagerTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(len(mail.outbox), 0)
+
+
+class UserProfileFormTests(TestCase):
+    def test_profile_form_uses_styled_fields_and_private_email_label(self):
+        user = User.objects.create_user(
+            username="profile_form_user",
+            password="Safe-test-password-42",
+            email="profile-form@example.com",
+        )
+        form = UserProfileForm(instance=user)
+
+        self.assertEqual(form.fields["username"].widget.attrs.get("class"), "form-control")
+        self.assertEqual(form.fields["email"].widget.attrs.get("class"), "form-control")
+        self.assertIn("не отображается в профиле", form.fields["email"].label)
+
+    def test_profile_form_rejects_non_pseudonymous_username(self):
+        user = User.objects.create_user(
+            username="profile_form_user2",
+            password="Safe-test-password-42",
+            email="profile-form2@example.com",
+        )
+        form = UserProfileForm(
+            data={
+                "username": "Real Name!",
+                "email": user.email,
+            },
+            instance=user,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("username", form.errors)
+
+    def test_profile_form_rejects_oversized_avatar(self):
+        user = User.objects.create_user(
+            username="profile_form_user3",
+            password="Safe-test-password-42",
+            email="profile-form3@example.com",
+        )
+        upload = SimpleUploadedFile("avatar.png", b"x" * (5 * 1024 * 1024 + 1), content_type="image/png")
+        form = UserProfileForm(
+            data={"username": user.username, "email": user.email},
+            files={"image": upload},
+            instance=user,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("image", form.errors)
