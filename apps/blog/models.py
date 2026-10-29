@@ -83,3 +83,53 @@ class ReplayComment(models.Model):
 
     def __str__(self):
         return self.text[:80]
+
+class Report(models.Model):
+    class Reason(models.TextChoices):
+        SPAM = "spam", "Спам"
+        HARASSMENT = "harassment", "Травля или угрозы"
+        PRIVACY = "privacy", "Раскрытие личных данных"
+        HATE = "hate", "Ненависть или опасный контент"
+        OTHER = "other", "Другое"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Ожидает проверки"
+        REVIEWED = "reviewed", "Проверено"
+        ACTION_TAKEN = "action_taken", "Приняты меры"
+        DISMISSED = "dismissed", "Отклонено"
+
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reports_made")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True, related_name="reports")
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True, related_name="reports")
+    reason = models.CharField("Причина", max_length=20, choices=Reason.choices)
+    details = models.TextField("Подробности", blank=True)
+    status = models.CharField("Статус", max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Жалоба"
+        verbose_name_plural = "Жалобы"
+        ordering = ["status", "-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(post__isnull=False, comment__isnull=True)
+                    | models.Q(post__isnull=True, comment__isnull=False)
+                ),
+                name="report_exactly_one_target",
+            ),
+            models.UniqueConstraint(
+                fields=["reporter", "post"],
+                condition=models.Q(post__isnull=False),
+                name="unique_reporter_post",
+            ),
+            models.UniqueConstraint(
+                fields=["reporter", "comment"],
+                condition=models.Q(comment__isnull=False),
+                name="unique_reporter_comment",
+            ),
+        ]
+
+    def __str__(self):
+        target = f"post #{self.post_id}" if self.post_id else f"comment #{self.comment_id}"
+        return f"Report #{self.pk}: {target} ({self.get_status_display()})"
