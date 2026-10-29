@@ -68,3 +68,24 @@ class UserManagerTests(TestCase):
         self.assertNotContains(response, "private@example.com")
         self.assertNotContains(response, "PrivateFirst")
         self.assertNotContains(response, "PrivateLast")
+
+
+    def test_user_can_block_and_unblock_another_user(self):
+        blocker = User.objects.create_user(
+            username="blocker",
+            password="Safe-test-password-42",
+            email="blocker@example.com",
+        )
+        blocked = User.objects.create_user(
+            username="blocked",
+            password="Safe-test-password-42",
+            email="blocked@example.com",
+        )
+        self.client.force_login(blocker)
+
+        response = self.client.post(reverse("block_user", kwargs={"user_id": blocked.pk}))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(blocker.blocked_users.filter(pk=blocked.pk).exists())
+
+        self.client.post(reverse("unblock_user", kwargs={"user_id": blocked.pk}))
+        self.assertFalse(blocker.blocked_users.filter(pk=blocked.pk).exists())
