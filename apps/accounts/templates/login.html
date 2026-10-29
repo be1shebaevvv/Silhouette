@@ -1,57 +1,38 @@
-{% extends 'base.html'%}
+{% extends 'base.html' %}
 
-{% block content%}
-<section class="vh-100 gradient-custom">
-    <div class="container py-5 h-100">
-      <div class="row d-flex justify-content-center align-items-center h-100">
-        <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-          <div class="card bg-dark text-white" style="border-radius: 1rem; ">
-            <div class="card-body p-5 text-center">
-  
-              <div class="mb-md-5 mt-md-4 pb-5">
-  
-                <h2 class="fw-bold mb-2 text-uppercase">Авторизация</h2>
-                <p class="text-white-50 mb-5">Введите пороль и никнейм!</p>
-                <form method="post">
-              
-                    {% csrf_token %}
-  
-                <div class="form-outline form-white mb-4">
-                  <!-- <input type="username" id="typeEmailX" class="form-control form-control-lg" /> -->
-                  
-                  {{form.username}}
-                  <label class="form-label" for="typeEmailX">Никнейм</label>
-                </div>
-  
-                <div class="form-outline form-white mb-4">
-                  <!-- <input type="password" id="typePasswordX" class="form-control form-control-lg" /> -->
-                  {{form.password}}
-                  <label class="form-label" for="typePasswordX">Пароль</label>
-                </div>
-              
-  
-                <!-- <p class="small mb-5 pb-lg-2"><a class="text-white-50" href="#!">Forgot password?</a></p> -->
-  
-                <button type="submit" class="btn btn-outline-light btn-lg px-5">Войти</button>
-  
-                <div class="d-flex justify-content-center text-center mt-4 pt-1">
-                  <a href="#!" class="text-white"><i class="fab fa-facebook-f fa-lg"></i></a>
-                  <a href="#!" class="text-white"><i class="fab fa-twitter fa-lg mx-4 px-2"></i></a>
-                  <a href="#!" class="text-white"><i class="fab fa-google fa-lg"></i></a>
-                </div>
-  
-              </div>
-  
-              <div>
-                <p class="mb-0">У вас нету аккаунта ? <a href="{% url 'register' %}" class="text-white-50 fw-bold">Зарегистрироваться </a>
-                </p>
-              </div>
-            </div>
+{% block title %}Вход — Silhouette{% endblock %}
+
+{% block content %}
+<section class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4 p-md-5">
+        <h1 class="h3 mb-2">Войти в Silhouette</h1>
+        <p class="text-secondary mb-4">Общайтесь под псевдонимом. Не обязательно указывать настоящее имя.</p>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}<p class="mb-0">{{ error }}</p>{% endfor %}
           </div>
-        </div>
-                <form>
+        {% endif %}
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.username.id_for_label }}">Никнейм</label>
+            {{ form.username }}
+            {% for error in form.username.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="{{ form.password.id_for_label }}">Пароль</label>
+            {{ form.password }}
+            {% for error in form.password.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+          <button type="submit" class="btn btn-dark w-100">Войти</button>
+        </form>
+        <p class="mb-0 mt-4 text-center">Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
       </div>
     </div>
-  </section>
-
+  </div>
+</section>
 {% endblock %}
