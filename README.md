@@ -19,17 +19,13 @@ Silhouette is an anonymous-first social platform built with Django. Its goal is 
    python -m pip install -r requirements.txt
    ```
 
-4. Set a local secret key (recommended even for development):
+4. Copy `.env.example` to `.env` and replace the sample secret with a generated key:
 
-   **Windows PowerShell**
-   ```powershell
-   $env:DJANGO_SECRET_KEY = "replace-with-a-random-local-secret"
-   ```
-
-   **macOS/Linux**
    ```bash
-   export DJANGO_SECRET_KEY="replace-with-a-random-local-secret"
+   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
    ```
+
+   Put the generated value in `DJANGO_SECRET_KEY` in `.env`. The `.env` file is ignored by Git. Never reuse the example value in a deployed environment.
 
 5. Apply migrations and create an administrator:
 
