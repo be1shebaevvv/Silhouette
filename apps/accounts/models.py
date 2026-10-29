@@ -37,7 +37,7 @@ class User(AbstractUser):
     email = models.EmailField("Электронная почта", unique=True)
     image = models.ImageField(
         "Аватарка",
-        upload_to="media/users/profiles_images/",
+        upload_to="users/profiles_images/",
         blank=True,
         null=True,
     )
