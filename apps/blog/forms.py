@@ -126,3 +126,24 @@ class PostForm(forms.ModelForm):
         if len(description) > 10000:
             raise forms.ValidationError("Текст не должен превышать 10000 символов.")
         return description
+
+
+
+class ReportForm(forms.ModelForm):
+    class Meta:
+        from apps.blog.models import Report
+
+        model = Report
+        fields = ["reason", "details"]
+        widgets = {
+            "reason": forms.Select(attrs={"class": "form-select"}),
+            "details": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3, "maxlength": 2000, "placeholder": "Дополнительные сведения (необязательно)"}
+            ),
+        }
+
+    def clean_details(self):
+        details = self.cleaned_data.get("details", "").strip()
+        if len(details) > 2000:
+            raise forms.ValidationError("Подробности не должны превышать 2000 символов.")
+        return details
