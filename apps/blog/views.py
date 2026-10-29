@@ -1,229 +1,191 @@
-
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy, reverse
-from django.forms.models import BaseModelForm
-from django.http import HttpResponse
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count
-from django.views.generic import ListView, DetailView, CreateView, UpdateView
-import random
+from django.http import HttpResponseNotAllowed
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
+from django.views.decorators.http import require_POST
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
-
-from apps.blog.models import Post, Category, Comment
-from apps.blog.forms import CommentForm, PostCreationForm, PostForm, ReplayCommentForm
 from apps.accounts.models import User
+from apps.blog.forms import CommentForm, PostCreationForm, PostForm
+from apps.blog.models import Category, Comment, Post
+
 
 class PostListViews(ListView):
     template_name = "index.html"
     model = Post
-    queryset = Post.objects.filter(is_active=True).order_by('-created_at')
     context_object_name = "posts"
-    paginate_by = 99999
+    paginate_by = 20
 
     def get_queryset(self):
-        id = self.request.GET.get('id')
-        post = Post.objects.filter(id=id)
-        queryset = Post.objects.filter(is_active=True).exclude(id=id)
-        queryset = list(post) + list(queryset)
-        return queryset
+        return (
+            Post.objects.filter(is_active=True)
+            .select_related("author", "category")
+            .prefetch_related("likes", "dislikes")
+            .order_by("-created_at")
+        )
 
 
 def listviews(request):
-    return render(request, 'index1.html')
-
-
+    return render(request, "index1.html")
 
 
 class RecomentPost(ListView):
     template_name = "post_recommendations.html"
     model = Post
     context_object_name = "posts"
+    paginate_by = 20
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.filter(is_active=True)
-        random_posts = random.sample(list(queryset), len(queryset))
-        return random_posts
-
+        return (
+            Post.objects.filter(is_active=True)
+            .select_related("author", "category")
+            .order_by("?")
+        )
 
 
 class UserPosts(LoginRequiredMixin, ListView):
     model = Post
-    template_name = 'post_user.html'
-    context_object_name = 'posts'
-    paginate_by = 99999
-    
+    template_name = "post_user.html"
+    context_object_name = "posts"
+    paginate_by = 20
+
     def get_queryset(self):
-        user_id = self.kwargs.get("user_id")
-        user = get_object_or_404(User, id=user_id)
-        queryset = Post.objects.filter(author=user).order_by('-created_at')
-        return queryset
+        user = get_object_or_404(User, pk=self.kwargs["user_id"])
+        return Post.objects.filter(author=user, is_active=True).select_related("category")
 
 
-@login_required
+@login_required(login_url="login")
 def user_post_count(request):
-    post_count = Post.objects.filter(author=request.user.post.id).count()
-    context = {
-        'post_count': post_count
-    }
-    return render(request, 'profil.html', context)
+    post_count = Post.objects.filter(author=request.user, is_active=True).count()
+    posts = Post.objects.filter(author=request.user, is_active=True).order_by("-created_at")[:4]
+    return render(request, "profil.html", {"user": request.user, "posts": posts, "post_count": post_count})
 
 
-
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, get_object_or_404
-from .models import Comment
-
-@login_required(login_url='login')  # Обновленный декоратор
+@login_required(login_url="login")
+@require_POST
 def save_comment_form(request, post_id):
-    if request.method == "POST":
-        print(request.POST)
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            post = get_object_or_404(Post, id=post_id)
-            comment = form.save(commit=False)
-            comment.author = request.user
-            comment.post = post
-            comment.save()
-    return redirect(reverse_lazy("post_detail", kwargs={"pk":post_id}))
+    post = get_object_or_404(Post, pk=post_id, is_active=True)
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+    return redirect("post_detail", pk=post.pk)
 
 
-
-from django.shortcuts import get_object_or_404
-
+@login_required(login_url="login")
+@require_POST
 def reply_to_comment(request, comment_id):
-    comment = get_object_or_404(Comment, id=comment_id)  # Получить объект комментария
-
-    if request.method == "POST":
-        form = ReplayCommentForm(request.POST)
-        if form.is_valid():
-            reply = form.save(commit=False)
-            reply.author = request.user
-            reply.parent = comment
-            reply.post = comment.post  # Присвоить тот же пост, что и у родительского комментария
-            reply.save()
-            return redirect('post_detail', pk=comment.post.pk)
-
-    form = ReplayCommentForm()
-    context = {'form': form}
-    return render(request, 'post_detail.html', context)
-
-
+    parent = get_object_or_404(Comment.objects.select_related("post"), pk=comment_id)
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        reply = form.save(commit=False)
+        reply.author = request.user
+        reply.post = parent.post
+        reply.parent_comment = parent
+        reply.save()
+    return redirect("post_detail", pk=parent.post.pk)
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
-    template_name="post_create.html"
+    template_name = "post_create.html"
     model = Post
     success_url = reverse_lazy("all")
     form_class = PostCreationForm
 
-
     def form_valid(self, form):
-        post = form.save(commit=False)
-        post.author = self.request.user
-        post.save()
+        form.instance.author = self.request.user
         return super().form_valid(form)
-    
+
+
 class PostDetailView(DetailView):
     model = Post
-    template_name = 'post_detail.html'
+    template_name = "post_detail.html"
+    context_object_name = "post"
+
+    def get_queryset(self):
+        return Post.objects.filter(is_active=True).select_related("author", "category")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         post = self.object
-        comments = Comment.objects.filter(post=post)
-        comment_count = comments.count()
-        context['comments'] = comments
-        context['comment_count'] = comment_count
+        context["comments"] = (
+            Comment.objects.filter(post=post, parent_comment__isnull=True)
+            .select_related("author")
+            .prefetch_related("replies__author")
+        )
+        context["comment_count"] = Comment.objects.filter(post=post).count()
+        context["like_count"] = post.likes.count()
+        context["dislike_count"] = post.dislikes.count()
         return context
- 
 
 
-@login_required(login_url='login')  # Обновленный декоратор
+@login_required(login_url="login")
 def add_post(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = PostCreationForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
-            post.author = request.user  # Установка поля автора
+            post.author = request.user
             post.save()
-            return redirect('post_detail', pk=post.pk)
+            return redirect("post_detail", pk=post.pk)
     else:
         form = PostCreationForm()
-    return render(request, 'post_create.html', {'form': form})
+    return render(request, "post_create.html", {"form": form})
 
 
-
-
-
-@login_required(login_url='login')
+@login_required(login_url="login")
+@require_POST
 def like_dislike_post(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        
-        if action == 'like':
-            if request.user in post.likes.all():
-                post.likes.remove(request.user)
-            else:
-                post.likes.add(request.user)
-                post.dislikes.remove(request.user)
-        elif action == 'dislike':
-            if request.user in post.dislikes.all():
-                post.dislikes.remove(request.user)
-            else:
-                post.dislikes.add(request.user)
-                post.likes.remove(request.user)
-    
-    like_count = post.likes.count()
-    dislike_count = post.dislikes.count()
-    
-    context = {
-        'post': post,
-        'like_count': like_count,
-        'dislike_count': dislike_count
-    }
-    return render(request, 'post_detail.html', context)
+    post = get_object_or_404(Post, pk=post_id, is_active=True)
+    action = request.POST.get("action")
+
+    if action == "like":
+        if post.likes.filter(pk=request.user.pk).exists():
+            post.likes.remove(request.user)
+        else:
+            post.likes.add(request.user)
+            post.dislikes.remove(request.user)
+    elif action == "dislike":
+        if post.dislikes.filter(pk=request.user.pk).exists():
+            post.dislikes.remove(request.user)
+        else:
+            post.dislikes.add(request.user)
+            post.likes.remove(request.user)
+
+    return redirect("post_detail", pk=post.pk)
 
 
-
-
-class PostUpdateView(LoginRequiredMixin, UpdateView):
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     form_class = PostForm
-    template_name = 'post_edit.html'
+    template_name = "post_edit.html"
+
+    def test_func(self):
+        return self.get_object().author_id == self.request.user.pk
 
     def get_success_url(self):
-        return reverse('all')
+        return reverse("post_detail", kwargs={"pk": self.object.pk})
 
 
-
-
-
-
-# лента
-
+@login_required(login_url="login")
 def feed(request):
-    current_user = request.user
-    profile = current_user
-    subscribed_users = profile.subscriptions.all()
-    posts = Post.objects.filter(author__in=subscribed_users).order_by('-created_at')
-
-    context = {
-        'posts': posts
-    }
-
-    return render(request, 'feed.html', context)
-
-
-# Топ 3 поста 
-
+    subscribed_users = request.user.subscriptions.all()
+    posts = (
+        Post.objects.filter(author__in=subscribed_users, is_active=True)
+        .select_related("author", "category")
+        .order_by("-created_at")
+    )
+    return render(request, "feed.html", {"posts": posts})
 
 
 def top_posts_view(request):
-    top_posts = Post.objects.order_by('-likes')[:3]
-    return render(request, 'index1.html', {'top_posts': top_posts})
-
-
+    top_posts = (
+        Post.objects.filter(is_active=True)
+        .annotate(like_count=Count("likes", distinct=True))
+        .order_by("-like_count", "-created_at")[:3]
+    )
+    return render(request, "index1.html", {"top_posts": top_posts})
