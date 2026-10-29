@@ -44,7 +44,7 @@ class RecomentPost(ListView):
         )
 
 
-class UserPosts(LoginRequiredMixin, ListView):
+class UserPosts(ListView):
     model = Post
     template_name = "post_user.html"
     context_object_name = "posts"
