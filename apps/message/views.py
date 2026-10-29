@@ -31,19 +31,17 @@ def chats(request, recipient_id):
     return render(request, "chat.html", {"recipient": recipient, "messages": conversation})
 
 
-@login_required(login_url="login")
-def user_chats(request):
-    sent_to = Message.objects.filter(sender=request.user).values_list("recipient_id", flat=True)
-    received_from = Message.objects.filter(recipient=request.user).values_list("sender_id", flat=True)
+def _recent_chats(user):
+    sent_to = Message.objects.filter(sender=user).values_list("recipient_id", flat=True)
+    received_from = Message.objects.filter(recipient=user).values_list("sender_id", flat=True)
     partner_ids = set(sent_to) | set(received_from)
-    users = User.objects.filter(pk__in=partner_ids).order_by("username")
+    partners = User.objects.filter(pk__in=partner_ids).order_by("username")
 
     chats = []
-    for partner in users:
+    for partner in partners:
         latest_message = (
             Message.objects.filter(
-                Q(sender=request.user, recipient=partner)
-                | Q(sender=partner, recipient=request.user)
+                Q(sender=user, recipient=partner) | Q(sender=partner, recipient=user)
             )
             .order_by("-timestamp")
             .first()
@@ -51,8 +49,12 @@ def user_chats(request):
         if latest_message is not None:
             chats.append({"user": partner, "latest_message": latest_message})
 
-    chats.sort(key=lambda item: item["latest_message"].timestamp, reverse=True)
+    return sorted(chats, key=lambda item: item["latest_message"].timestamp, reverse=True)
 
+
+@login_required(login_url="login")
+def user_chats(request):
+    chats = _recent_chats(request.user)
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({
             "chats": [
@@ -65,28 +67,18 @@ def user_chats(request):
                 for item in chats
             ]
         })
-
     return render(request, "list_chats.html", {"chats": chats})
 
 
 @login_required(login_url="login")
 def messages_view(request):
-    messages = (
-        Message.objects.filter(Q(sender=request.user) | Q(recipient=request.user))
-        .select_related("sender", "recipient")
-        .order_by("-timestamp")
-    )
-    partners = User.objects.filter(
-        Q(sent_messages__recipient=request.user)
-        | Q(received_messages__sender=request.user)
-    ).distinct()
+    query = request.GET.get("query", "").strip()
+    users = User.objects.none()
+    if query:
+        users = User.objects.filter(username__icontains=query).exclude(pk=request.user.pk)[:20]
+
     return render(
         request,
         "messages_search.html",
-        {
-            "messages": messages,
-            "user": request.user,
-            "senders": partners,
-            "recipients": partners,
-        },
+        {"users": users, "query": query, "chats": _recent_chats(request.user)},
     )
