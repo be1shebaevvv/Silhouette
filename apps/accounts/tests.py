@@ -122,3 +122,33 @@ class UserManagerTests(TestCase):
         user.refresh_from_db()
         self.assertTrue(user.is_verified)
         self.assertTrue(self.client.session.get("_auth_user_id"))
+
+
+    def test_account_deletion_requires_current_password(self):
+        user = User.objects.create_user(
+            username="delete_me",
+            password="Safe-test-password-42",
+            email="delete-me@example.com",
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(reverse("delete_account"), {"password": "wrong-password"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(User.objects.filter(pk=user.pk).exists())
+
+    def test_account_can_be_deleted_with_current_password(self):
+        user = User.objects.create_user(
+            username="delete_me_for_real",
+            password="Safe-test-password-42",
+            email="delete-me-for-real@example.com",
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("delete_account"),
+            {"password": "Safe-test-password-42"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(User.objects.filter(pk=user.pk).exists())
