@@ -77,7 +77,11 @@ class UserRegisterView(CreateView):
         user.save()
         form.save_m2m()
         send_activation_email(user, request=self.request, to_email=user.email)
-        return redirect(self.get_success_url())
+
+        # CreateView.get_success_url() formats success_url with self.object.
+        # This custom form_valid() does not call super(), so self.object is None.
+        # Redirecting to success_url directly avoids the None.__dict__ error.
+        return redirect(self.success_url)
 
 
 def profil(request):
