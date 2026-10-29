@@ -4,7 +4,7 @@ from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.blog.forms import PostCreationForm
-from apps.blog.models import Comment, Post
+from apps.blog.models import Comment, Post, Report
 
 
 class PostAndDiscussionTests(TestCase):
@@ -90,3 +90,46 @@ class PostAndDiscussionTests(TestCase):
         )
         self.assertFalse(form.is_valid())
         self.assertIn("media", form.errors)
+
+
+class ContentReportingTests(TestCase):
+    def setUp(self):
+        self.author = User.objects.create_user(
+            username="content_author",
+            password="Safe-test-password-42",
+            email="content-author@example.com",
+        )
+        self.reporter = User.objects.create_user(
+            username="reporter",
+            password="Safe-test-password-42",
+            email="reporter@example.com",
+        )
+        self.post = Post.objects.create(
+            title="Reported post",
+            description="Example content",
+            author=self.author,
+        )
+
+    def test_user_can_report_a_post_once(self):
+        self.client.force_login(self.reporter)
+        url = reverse("report_post", kwargs={"post_id": self.post.pk})
+
+        response = self.client.post(url, {"reason": "spam", "details": "Repeated advertisements"})
+
+        self.assertEqual(response.status_code, 302)
+        report = Report.objects.get(reporter=self.reporter, post=self.post)
+        self.assertEqual(report.status, Report.Status.PENDING)
+
+        self.client.post(url, {"reason": "other", "details": "Duplicate"})
+        self.assertEqual(Report.objects.filter(reporter=self.reporter, post=self.post).count(), 1)
+
+    def test_author_cannot_report_own_post(self):
+        self.client.force_login(self.author)
+
+        response = self.client.post(
+            reverse("report_post", kwargs={"post_id": self.post.pk}),
+            {"reason": "other", "details": ""},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Report.objects.filter(reporter=self.author, post=self.post).exists())
