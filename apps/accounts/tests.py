@@ -1,7 +1,11 @@
-from django.test import TestCase
+from django.core import mail
+from django.test import TestCase, override_settings
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.accounts.token import CustomTokenGenerator
 
 
 class UserManagerTests(TestCase):
@@ -89,3 +93,32 @@ class UserManagerTests(TestCase):
 
         self.client.post(reverse("unblock_user", kwargs={"user_id": blocked.pk}))
         self.assertFalse(blocker.blocked_users.filter(pk=blocked.pk).exists())
+
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_registration_requires_and_supports_email_verification(self):
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "new_pseudonym",
+                "email": "new-pseudonym@example.com",
+                "password1": "Another-safe-password-84",
+                "password2": "Another-safe-password-84",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        user = User.objects.get(username="new_pseudonym")
+        self.assertFalse(user.is_verified)
+        self.assertEqual(len(mail.outbox), 1)
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = CustomTokenGenerator().make_token(user)
+        activation = self.client.get(
+            reverse("account_activate", kwargs={"uidb64": uid, "token": token})
+        )
+
+        self.assertEqual(activation.status_code, 302)
+        user.refresh_from_db()
+        self.assertTrue(user.is_verified)
+        self.assertTrue(self.client.session.get("_auth_user_id"))
