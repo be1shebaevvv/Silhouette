@@ -25,8 +25,8 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
     if not DEBUG:
         raise RuntimeError("Set DJANGO_SECRET_KEY when DJANGO_DEBUG is disabled.")
-    # Development-only fallback. Set DJANGO_SECRET_KEY for any deployed instance.
-    SECRET_KEY = "django-insecure-local-development-only-do-not-deploy"
+    # Ephemeral fallback for local development; configure a stable secret in .env.
+    SECRET_KEY = os.urandom(50).hex()
 
 ALLOWED_HOSTS = env_list(
     "DJANGO_ALLOWED_HOSTS",
