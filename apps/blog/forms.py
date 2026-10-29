@@ -1,67 +1,64 @@
 from django import forms
 
-from apps.blog.models import Comment, Post, Category
+from apps.blog.models import Category, Comment, Post
 
-# from ckeditor.widgets import CKEditorWidget
 
 class CommentForm(forms.ModelForm):
-
     class Meta:
         model = Comment
         fields = ["text"]
         widgets = {
-            "text":forms.Textarea(attrs={"class":"form-control"})
+            "text": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "maxlength": 5000,
+                    "placeholder": "Напишите комментарий…",
+                }
+            )
         }
 
-class ReplayCommentForm(forms.ModelForm):
 
-    class Meta:
-        model = Comment
-        fields = ["text"]
-        widgets = {
-            "text":forms.Textarea(attrs={"class":"form-control"})
-        }
-
-from django_select2 import forms as s2forms
-
-class CategorySelectWidget(s2forms.ModelSelect2Widget):
-    search_fields = [
-        "name__icontains"
-    ]
-
-
+class ReplayCommentForm(CommentForm):
+    """Compatibility alias for templates that still import the old form name."""
 
 
 class PostCreationForm(forms.ModelForm):
     category = forms.ModelChoiceField(
         queryset=Category.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        required=False
+        widget=forms.Select(attrs={"class": "form-select"}),
+        required=False,
     )
-    
+
     class Meta:
         model = Post
-        fields = ['title', 'description', 'media', 'category', 'is_active']
+        fields = ["title", "description", "media", "category", "is_active"]
         labels = {
-            'title': 'Название',
-            'description': 'Описание',
-            'media': 'Медия',
-            'category': 'Категория',
-            'is_active': 'Активный',
+            "title": "Заголовок",
+            "description": "Текст публикации",
+            "media": "Медиафайл (необязательно)",
+            "category": "Категория",
+            "is_active": "Опубликовать",
         }
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control'}),
-            'media': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            "title": forms.TextInput(
+                attrs={"class": "form-control", "maxlength": 100, "placeholder": "Заголовок"}
+            ),
+            "description": forms.Textarea(
+                attrs={"class": "form-control", "rows": 6, "placeholder": "Чем хотите поделиться?"}
+            ),
+            "media": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
-
-
-from django import forms
-from .models import Post
 
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'description', "is_active", "category"]
+        fields = ["title", "description", "is_active", "category"]
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 6}),
+            "category": forms.Select(attrs={"class": "form-select"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
