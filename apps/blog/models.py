@@ -1,87 +1,79 @@
 from django.db import models
+
 from apps.accounts.models import User
-
-# Create your models here.
-from django.shortcuts import render
-
-# # Podpiska
-# class Subscription(models.Model):
-#     subscriber = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
-#     subscribed_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscribers')
-#     created_at = models.DateTimeField(auto_now_add=True)
-
 
 
 class Category(models.Model):
     name = models.CharField("Название", max_length=100)
-    slug = models.SlugField(max_length=150)
+    slug = models.SlugField(max_length=150, unique=True)
 
     class Meta:
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
+        ordering = ["name"]
 
     def __str__(self):
-        return f'{self.name}'
+        return self.name
 
 
 class Post(models.Model):
-    title = models.CharField(verbose_name="Название", max_length=100)
+    title = models.CharField("Название", max_length=100)
     description = models.TextField("Описание")
-    # image = models.ImageField("Фото", upload_to="posts/images/")
-    media = models.FileField("Медия", upload_to='media/post_media')
-
-
+    media = models.FileField("Медиа", upload_to="posts/", blank=True, null=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
-    # выставит время во время создание записи
-    created_at = models.DateTimeField(auto_now_add=True) 
-    
-    # Выставит время во время повторного обновления данных
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
     is_active = models.BooleanField("Активный", default=True)
+    likes = models.ManyToManyField(User, related_name="liked_posts", blank=True)
+    dislikes = models.ManyToManyField(User, related_name="disliked_posts", blank=True)
+    chats = models.ManyToManyField(User, related_name="chats", blank=True)
 
-    likes = models.ManyToManyField(User, related_name='liked_posts')
-    dislikes = models.ManyToManyField(User, related_name='disliked_posts')
-    chats = models.ManyToManyField(User, related_name="chats")
+    class Meta:
+        verbose_name = "Публикация"
+        verbose_name_plural = "Публикации"
+        ordering = ["-created_at"]
 
-    class Meta: 
-        verbose_name = "Пост"
-        verbose_name_plural = "Посты"
-
+    def __str__(self):
+        return self.title
 
 
 class Comment(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="post_comments")
-    parent_comment = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)
+    parent_comment = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="replies",
+    )
     text = models.TextField("Комментарий")
     created_at = models.DateTimeField(auto_now_add=True)
     likes = models.PositiveIntegerField(default=0)
-    
-    class Meta:
-        verbose_name = "комментарий"
-        verbose_name_plural = "Комментарии"
 
-    @property
-    def comment_set(self):
-        return self.comments.order_by('-created_at')
-    
+    class Meta:
+        verbose_name = "Комментарий"
+        verbose_name_plural = "Комментарии"
+        ordering = ["created_at"]
+
     def __str__(self):
-        return f"{self.text}"
-    
+        return self.text[:80]
+
 
 class ReplayComment(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='replay_comment')
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_replay_comments')
+    """Legacy reply model retained for compatibility with existing migrations."""
+
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="replay_comment")
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="post_replay_comments")
     parent = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True)
     text = models.TextField("Комментарий")
     created_at = models.DateTimeField(auto_now_add=True)
     likes = models.PositiveIntegerField(default=0)
-    
+
     class Meta:
-        verbose_name = "комментарий"
-        verbose_name_plural = "Комментарии"
-    
+        verbose_name = "Ответ на комментарий"
+        verbose_name_plural = "Ответы на комментарии"
+
     def __str__(self):
-        return f"{self.text}"
+        return self.text[:80]
