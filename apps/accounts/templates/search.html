@@ -1,119 +1,51 @@
 {% extends 'base.html' %}
 
+{% block title %}Поиск — Silhouette{% endblock %}
+
 {% block content %}
-<style>
-  .follower-container {
-    margin-bottom: 20px;
-  }
-
-  .follower-list {
-    background-color: #f2f2f2;
-    padding: 10px;
-    border-radius: 5px;
-  }
-
-  .follower-user {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-  }
-
-  .follower-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 10px;
-  }
-
-  .follower-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .follower-username {
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-</style>
-
-<form method="GET" action="{% url 'search' %}">
-    <input type="text" name="query" placeholder="Поиск" autocomplete="off">
-    <button type="submit">Поиск</button>
-  </form>
-
-{% for user in users %}
-<div class="follower-container">
-  <div class="follower-list">
-    <div class="follower-user">
-      {% if user.image %}
-      <img class="follower-avatar" src="{{ user.image.url }}" alt="Аватар пользователя">
-      {% else %}
-      <img class="follower-avatar" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU" alt="Аватар пользователя">
-      {% endif %}
-      <div class="follower-info">
-        <h3 class="follower-username">
-          <a href="{% url 'profile' user.username %}" style="text-decoration: none; color: black;">{{ user.username }}</a>
-        </h3>
-      </div>
-    </div>
-  </div>
+<div class="mb-4">
+  <h1 class="h3 mb-1">Поиск</h1>
+  <p class="text-secondary mb-0">Найдите автора или публикацию.</p>
 </div>
-{% endfor %}
+<form method="get" action="{% url 'search' %}" class="d-flex gap-2 mb-4">
+  <input class="form-control" type="search" name="query" value="{{ query }}" placeholder="Никнейм или текст публикации" aria-label="Поисковый запрос">
+  <button class="btn btn-dark" type="submit">Найти</button>
+</form>
 
-<div class="row">
-  {% for post in posts %}
-  <div class="col-md-4 mb-4">
-    <div class="card post-card">
-      {% if post.media.name|lower|slice:'-3:' == 'mp4' %}
-      <a href="{% url 'all' %}?id={{ post.id }}">
-        <video src="{{ post.media.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 400px;"></video>
-      </a>
-      {% else %}
-      <a href="{% url 'all' %}?id={{ post.id }}">
-        <img src="{{ post.media.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 400px;">
-      </a>
-      {% endif %}
-      {% if user.is_authenticated and user != post.author %}
-      {% if user in post.author.followers.all %}
-      <form method="POST" action="{% url 'unsubscribe' post.author.id %}">
-        {% csrf_token %}
-        <div class="input-group text-center">
-          <button class="btn btn-primary">Отписаться</button>
-        </div>
-      </form>
-      {% else %}
-      <form method="POST" action="{% url 'subscribe' post.author.id %}">
-        {% csrf_token %}
-        <div class="input-group text-center">
-          <button class="btn btn-primary">Подписаться</button>
-        </div>
-      </form>
-      {% endif %}
-      {% endif %}
-      <div class="avatar-username">
-        {% if post.author.image %}
-        <img src="{{ post.author.image.url }}" style="height: 40px; width: 40px; border-radius: 50%;" alt="аватар">
-        <a href="{% url 'profile' post.author.username %}" style="color: black; text-decoration: none;"
-          class="username">{{ post.author.username }}</a>
-        {% else %}
-        <img
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU"
-          style="height: 40px; width: 40px; border-radius: 50%;" alt="аватар">
-        <a href="{% url 'profile' post.author.username %}" style="color: black; text-decoration: none;"
-          class="username">{{ post.author.username }}</a>
-        {% endif %}
+{% if users %}
+  <h2 class="h5 mb-3">Авторы</h2>
+  <div class="row g-3 mb-4">
+    {% for profile in users %}
+      <div class="col-12 col-sm-6 col-lg-4">
+        <a href="{% url 'profile' profile.username %}" class="card border-0 shadow-sm rounded-4 p-3 text-decoration-none text-dark h-100">
+          <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold" style="width: 44px; height: 44px;">{{ profile.username|first|upper }}</div>
+            <div><strong>@{{ profile.username }}</strong><div class="small text-secondary">Открыть профиль</div></div>
+          </div>
+        </a>
       </div>
-    </div>
+    {% endfor %}
   </div>
-  {% endfor %}
-</div>
-
-{% if not users and not posts %}
-<p>No results found.</p>
 {% endif %}
 
-{% endblock %}
+{% if posts %}
+  <h2 class="h5 mb-3">Публикации</h2>
+  <div class="row g-3">
+    {% for post in posts %}
+      <div class="col-12 col-lg-6">
+        <article class="card border-0 shadow-sm rounded-4 h-100">
+          <div class="card-body p-4">
+            <div class="small text-secondary mb-2">@{{ post.author.username }} · {{ post.created_at|date:"d.m.Y" }}</div>
+            <h3 class="h5"><a href="{% url 'post_detail' post.pk %}" class="text-decoration-none text-dark">{{ post.title }}</a></h3>
+            <p class="text-secondary mb-0" style="white-space: pre-wrap;">{{ post.description|truncatewords:35 }}</p>
+          </div>
+        </article>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
 
-{% block title %}
-Search Results
+{% if not users and not posts %}
+  <div class="card border-0 shadow-sm rounded-4"><div class="card-body p-5 text-center"><h2 class="h5">Ничего не найдено</h2><p class="text-secondary mb-0">Попробуйте другой запрос.</p></div></div>
+{% endif %}
 {% endblock %}
