@@ -23,5 +23,14 @@ jobs:
         run: python manage.py makemigrations --check --dry-run
       - name: Run Django system checks
         run: python manage.py check
+      - name: Check production security settings
+        env:
+          DJANGO_DEBUG: "False"
+          DJANGO_SECRET_KEY: "ci-only-random-looking-secret-key-0123456789-abcdefghijklmnopqrstuvwxyz"
+          DJANGO_ALLOWED_HOSTS: "localhost"
+          EMAIL_USER: "ci@example.com"
+          EMAIL_PASSWORD: "ci-only-password"
+          DEFAULT_FROM_EMAIL: "ci@example.com"
+        run: python manage.py check --deploy
       - name: Run tests
         run: python manage.py test
