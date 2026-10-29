@@ -1,152 +1,49 @@
 {% extends 'base.html' %}
 
+{% block title %}Моя лента — Silhouette{% endblock %}
+
 {% block content %}
-<style>
-    .subscribe-button {
-        background-color: #FF5C5C;
-        border-color: #FF5C5C;
-        color: #FFFFFF;
-        margin-left: 10px;
-        transition: background-color 0.3s ease, border-color 0.3s ease;
-    }
-    .subscribe-button:hover {
-        background-color: #FF3636;
-        border-color: #FF3636;
-    }
-    .title {
-        display: flex;
-        align-items: center;
-    }
-
-    /* Updated Styling */
-    .post {
-        border-radius: 4px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-    }
-    .post-heading {
-        background-color: #f5f5f5;
-        border-radius: 4px 4px 0 0;
-        padding: 10px;
-    }
-    .post-image img,
-    .post-image video {
-        width: 100%;
-        height: auto;
-        border-radius: 4px;
-    }
-    .post-description {
-        padding: 10px;
-    }
-    .post-description h4 {
-        margin-top: 0;
-        margin-bottom: 10px;
-        font-size: 18px;
-    }
-    .post-description p {
-        margin-bottom: 0;
-        color: #555555;
-        font-size: 14px;
-        line-height: 1.5;
-    }
-    .post-footer {
-        padding: 10px;
-        background-color: #f5f5f5;
-        border-radius: 0 0 4px 4px;
-    }
-    .like-button,
-    .dislike-button {
-        background-color: transparent;
-        border: none;
-        color: #555555;
-        cursor: pointer;
-        font-size: 14px;
-        margin-right: 10px;
-        outline: none;
-        transition: color 0.3s ease;
-    }
-    .like-button:hover,
-    .dislike-button:hover {
-        color: #FF5C5C;
-    }
-    .count {
-        font-weight: bold;
-        margin-left: 5px;
-    }
-</style>
-
-<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
-<div class="container">
-    <div class="row">
-        <div class="col-sm-8 col-sm-offset-2">
-            <div class="row">
-                {% for post in posts %}
-                <div class="col-sm-12">
-                    <div class="panel panel-white post">
-                        <div class="post-heading">
-                            <div class="pull-left image">
-                                {% if post.author.image %}
-                                <img src="{{ post.author.image.url }}" class="img-circle avatar" alt="изображение профиля пользователя">
-                                {% else %}
-                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQg8mN5uKf0UZ-wDsoQG_KrhqsmHERZDn4Sa63Kni23Upw7qkWoIMIQ8ltfqxUnXyNi1LM&usqp=CAU" class="img-circle avatar" alt="изображение профиля пользователя">
-                                {% endif %}
-                            </div>
-                            <div class="pull-left meta">
-                                <div class="title h5">
-                                    <a href="{% url 'profile' post.author.username %}" style="text-decoration: none;"><b>{{ post.author.username }}</b></a>
-                                    {% if user.is_authenticated and user != post.author %}
-                                        {% if user in post.author.followers.all %}
-                                        <form method="POST" action="{% url 'unsubscribe' post.author.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="unsubscribe-button button-red">
-                                                <span style="color: red;">Отписаться</span>
-                                            </button>
-                                        </form>
-                                    {% else %}
-                                        <form method="POST" action="{% url 'subscribe' post.author.id %}">
-                                            {% csrf_token %}
-                                            <button type="submit" class="subscribe-button button-red">
-                                                <span style=" color:  red;">Подписаться</span>
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                            <h6 class="text-muted time">{{ post.created_at|date:"d-F Y" }}</h6>
-                        </div>
-                    </div>
-                    <div class="post-image">
-                        {% if post.media.name|lower|slice:'-3:' == 'mp4' %}
-                        <a href="#">
-                            <a href="{% url 'post_detail' post.id %}"><video src="{{ post.media.url }}" controls alt="видео поста" class="image"></video></a>
-                        </a>
-                        {% else %}
-                        <a href="#">
-                            <a href="{% url 'post_detail' post.id %}"><img src="{{ post.media.url }}" alt="изображение поста" class="image"></a>
-                        </a>
-                        {% endif %}
-                    </div>
-                    <div class="post-description">
-                        <h4>{{ post.title }}</h4>
-                        <p>{{ post.description|truncatewords:50|safe }}</p>
-                    </div>
-                    <div class="post-footer">
-                        <form method="POST" action="{% url 'like_dislike_post' post.id %}">
-                            {% csrf_token %}
-                            <button type="submit" name="action" value="like" class="like-button">
-                                <span>Лайк</span>
-                                <span class="count">{{ like_count }}</span>
-                            </button>
-                            <button type="submit" name="action" value="dislike" class="dislike-button">
-                                <span>Дизлайк</span>
-                                <span class="count">{{ dislike_count }}</span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                {% endfor %}
+<div class="mb-4">
+  <h1 class="h3 mb-1">Моя лента</h1>
+  <p class="text-secondary mb-0">Новые публикации людей, на которых вы подписаны.</p>
+</div>
+<div class="row g-4">
+  {% for post in posts %}
+    <div class="col-12 col-lg-8 mx-auto">
+      <article class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-semibold" style="width: 38px; height: 38px;">{{ post.author.username|first|upper }}</div>
+            <div class="flex-grow-1">
+              <a href="{% url 'profile' post.author.username %}" class="text-decoration-none fw-semibold text-dark">{{ post.author.username }}</a>
+              <div class="small text-secondary">{{ post.created_at|date:"d.m.Y H:i" }}</div>
             </div>
+            {% if user != post.author %}
+              {% if user in post.author.followers.all %}
+                <form method="post" action="{% url 'unsubscribe' post.author.id %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-secondary">Отписаться</button></form>
+              {% else %}
+                <form method="post" action="{% url 'subscribe' post.author.id %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-dark">Подписаться</button></form>
+              {% endif %}
+            {% endif %}
+          </div>
+          <h2 class="h5"><a href="{% url 'post_detail' post.pk %}" class="text-decoration-none text-dark">{{ post.title }}</a></h2>
+          <p class="mb-3" style="white-space: pre-wrap; overflow-wrap: anywhere;">{{ post.description|truncatewords:60 }}</p>
+          {% if post.media %}
+            {% if post.is_video %}
+              <video src="{{ post.media.url }}" controls preload="metadata" class="w-100 rounded-3" style="max-height: 520px;"></video>
+            {% else %}
+              <img src="{{ post.media.url }}" alt="Медиа к публикации" class="img-fluid w-100 rounded-3" style="max-height: 520px; object-fit: contain;">
+            {% endif %}
+          {% endif %}
         </div>
+        <div class="card-footer bg-white border-0 px-4 pb-4 d-flex justify-content-between align-items-center">
+          <span class="small text-secondary">{{ post.likes.count }} нравится · {{ post.post_comments.count }} комментариев</span>
+          <a href="{% url 'post_detail' post.pk %}" class="btn btn-sm btn-dark">Открыть обсуждение</a>
+        </div>
+      </article>
     </div>
+  {% empty %}
+    <div class="col-12 col-lg-8 mx-auto"><div class="card border-0 shadow-sm rounded-4"><div class="card-body p-5 text-center"><h2 class="h5">Ваша лента пока пуста</h2><p class="text-secondary">Подпишитесь на авторов, чтобы видеть их новые публикации здесь.</p><a href="{% url 'all' %}" class="btn btn-dark">Найти публикации</a></div></div></div>
+  {% endfor %}
 </div>
 {% endblock %}
