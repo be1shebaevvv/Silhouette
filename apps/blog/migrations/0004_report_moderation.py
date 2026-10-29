@@ -30,7 +30,8 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="report",
             constraint=models.CheckConstraint(
-                condition=models.Q(models.Q(("comment__isnull", True), ("post__isnull", False)), models.Q(("comment__isnull", False), ("post__isnull", True)), _connector="OR"),
+                condition=models.Q(post__isnull=False, comment__isnull=True)
+                | models.Q(post__isnull=True, comment__isnull=False),
                 name="report_exactly_one_target",
             ),
         ),
