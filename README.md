@@ -55,7 +55,7 @@ Without SMTP credentials, emails are printed to the development console instead 
 
 ## Privacy and anonymity
 
-Silhouette is intended to support pseudonymous participation, not to promise absolute anonymity. Deployment should use HTTPS, limit collection and retention of technical data, protect account information, and clearly explain what administrators and infrastructure providers can access.
+Silhouette is designed for pseudonymous participation: public profiles show a nickname, not the account email or real name. Users can block other accounts and report posts or comments; reports are available to moderators in Django admin. This is not absolute anonymity: hosting providers may process technical metadata, and users can reveal themselves through their own content or media. Deployment should use HTTPS, limit collection and retention of technical data, protect account information, and clearly explain what administrators and infrastructure providers can access.
 
 ## Tests and checks
 
@@ -66,4 +66,4 @@ python manage.py test
 python manage.py check
 ```
 
-This README describes the current development setup. Deployment should not be considered production-ready until the security review, tests, media handling, moderation, and operational configuration are complete.
+This README describes the current development setup. Deployment should not be considered production-ready until the full security review, operational configuration, backups, rate limiting, and deployment-specific checks are complete.
