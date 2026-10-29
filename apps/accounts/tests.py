@@ -1,4 +1,5 @@
 from django.core import mail
+from django.contrib.auth.tokens import default_token_generator
 from django.test import TestCase, override_settings
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -152,3 +153,57 @@ class UserManagerTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertFalse(User.objects.filter(pk=user.pk).exists())
+
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_password_reset_flow_changes_password(self):
+        user = User.objects.create_user(
+            username="password_reset_user",
+            password="Old-safe-password-42",
+            email="password-reset@example.com",
+            is_verified=True,
+        )
+        mail.outbox = []
+
+        response = self.client.post(reverse("password_reset"), {"email": user.email})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        confirm_url = reverse(
+            "password_reset_confirm",
+            kwargs={"uidb64": uid, "token": token},
+        )
+        response = self.client.get(confirm_url)
+        self.assertEqual(response.status_code, 302)
+
+        response = self.client.get(response.url)
+        self.assertEqual(response.status_code, 200)
+        response = self.client.post(
+            response.request["PATH_INFO"],
+            {
+                "new_password1": "Brand-new-safe-password-96",
+                "new_password2": "Brand-new-safe-password-96",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        user.refresh_from_db()
+        self.assertTrue(user.check_password("Brand-new-safe-password-96"))
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_unverified_accounts_do_not_receive_password_reset_email(self):
+        user = User.objects.create_user(
+            username="unverified_reset_user",
+            password="Old-safe-password-42",
+            email="unverified-reset@example.com",
+            is_verified=False,
+        )
+        mail.outbox = []
+
+        response = self.client.post(reverse("password_reset"), {"email": user.email})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(len(mail.outbox), 0)
