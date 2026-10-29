@@ -9,6 +9,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name="user",
+            name="image",
+            field=models.ImageField(blank=True, null=True, upload_to="users/profiles_images/", verbose_name="Аватарка"),
+        ),
         migrations.AddField(
             model_name="user",
             name="is_verified",
