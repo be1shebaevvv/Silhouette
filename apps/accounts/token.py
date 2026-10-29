@@ -2,10 +2,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 
 class CustomTokenGenerator(PasswordResetTokenGenerator):
-    """Use Django's built-in, state-aware token hashing.
+    """Use Django's state-aware hash and invalidate a token after verification."""
 
-    The inherited implementation invalidates tokens when security-sensitive
-    account state changes and applies Django's standard token timeout.
-    """
-
-    pass
+    def _make_hash_value(self, user, timestamp):
+        return super()._make_hash_value(user, timestamp) + str(user.is_verified)
