@@ -66,6 +66,9 @@
       </form>
       {% if user.is_authenticated and user == post.author %}
         <a href="{% url 'post-edit' post.pk %}" class="btn btn-sm btn-outline-dark ms-auto">Редактировать</a>
+        <form method="post" action="{% url 'delete_post' post.pk %}" onsubmit="return confirm('Удалить публикацию без возможности восстановления?');">
+          {% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+        </form>
       {% endif %}
     </div>
   </div>
