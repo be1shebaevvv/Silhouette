@@ -133,3 +133,25 @@ class ContentReportingTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Report.objects.filter(reporter=self.author, post=self.post).exists())
+
+
+    def test_only_author_can_delete_post(self):
+        other_user = User.objects.create_user(
+            username="delete_other",
+            password="Safe-test-password-42",
+            email="delete-other@example.com",
+        )
+        self.client.force_login(other_user)
+
+        response = self.client.post(reverse("delete_post", kwargs={"post_id": self.post.pk}))
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Post.objects.filter(pk=self.post.pk).exists())
+
+    def test_author_can_delete_own_post(self):
+        self.client.force_login(self.author)
+
+        response = self.client.post(reverse("delete_post", kwargs={"post_id": self.post.pk}))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Post.objects.filter(pk=self.post.pk).exists())
