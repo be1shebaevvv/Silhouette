@@ -21,7 +21,7 @@
 
     <div class="card-body p-4">
       <div class="d-flex flex-wrap gap-4 mb-4">
-        <div><strong class="d-block fs-5">{{ user.posts.count }}</strong><span class="small text-secondary">Публикации</span></div>
+        <div><strong class="d-block fs-5">{{ public_post_count }}</strong><span class="small text-secondary">Публикации</span></div>
         <div><a href="{% url 'followers' user.username %}" class="text-decoration-none text-dark"><strong class="d-block fs-5">{{ user.followers.count }}</strong><span class="small text-secondary">Подписчики</span></a></div>
         <div><a href="{% url 'subscription_list' user.username %}" class="text-decoration-none text-dark"><strong class="d-block fs-5">{{ user.subscriptions.count }}</strong><span class="small text-secondary">Подписки</span></a></div>
       </div>
