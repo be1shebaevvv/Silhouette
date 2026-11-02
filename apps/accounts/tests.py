@@ -256,3 +256,49 @@ class UserProfileFormTests(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("image", form.errors)
+
+
+class RegistrationFormValidationTests(TestCase):
+    def test_registration_rejects_non_pseudonymous_username(self):
+        from apps.accounts.forms import UserRegisterForm
+
+        form = UserRegisterForm(data={
+            "username": "Real Name!",
+            "email": "new-user@example.com",
+            "password1": "Another-safe-password-84",
+            "password2": "Another-safe-password-84",
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("username", form.errors)
+
+    def test_registration_normalizes_email_to_lowercase(self):
+        from apps.accounts.forms import UserRegisterForm
+
+        form = UserRegisterForm(data={
+            "username": "lowercase_email",
+            "email": "Person@EXAMPLE.COM",
+            "password1": "Another-safe-password-84",
+            "password2": "Another-safe-password-84",
+        })
+
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["email"], "person@example.com")
+
+    def test_registration_rejects_duplicate_email_case_insensitively(self):
+        from apps.accounts.forms import UserRegisterForm
+
+        User.objects.create_user(
+            username="existing_email_user",
+            password="Safe-test-password-42",
+            email="person@example.com",
+        )
+        form = UserRegisterForm(data={
+            "username": "second_email_user",
+            "email": "PERSON@example.com",
+            "password1": "Another-safe-password-84",
+            "password2": "Another-safe-password-84",
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("email", form.errors)
