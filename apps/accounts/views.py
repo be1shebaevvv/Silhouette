@@ -87,8 +87,9 @@ class UserRegisterView(CreateView):
 def profil(request):
     if not request.user.is_authenticated:
         return redirect("login")
-    posts = Post.objects.filter(author=request.user).order_by("-created_at")[:4]
-    return render(request, "profil.html", {"user": request.user, "posts": posts})
+    posts = Post.objects.filter(author=request.user, is_active=True).select_related("author", "category").order_by("-created_at")[:4]
+    public_post_count = Post.objects.filter(author=request.user, is_active=True).count()
+    return render(request, "profil.html", {"user": request.user, "posts": posts, "public_post_count": public_post_count})
 
 
 token_generator = CustomTokenGenerator()
@@ -133,8 +134,9 @@ def edit_profile(request):
 
 def show_profile(request, username):
     user = get_object_or_404(User, username=username)
-    posts = Post.objects.filter(author=user, is_active=True).order_by("-created_at")
-    return render(request, "profil.html", {"user": user, "posts": posts})
+    posts = Post.objects.filter(author=user, is_active=True).select_related("author", "category").order_by("-created_at")[:4]
+    public_post_count = Post.objects.filter(author=user, is_active=True).count()
+    return render(request, "profil.html", {"user": user, "posts": posts, "public_post_count": public_post_count})
 
 
 @login_required(login_url="login")
