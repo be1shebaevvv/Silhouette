@@ -302,3 +302,31 @@ class RegistrationFormValidationTests(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn("email", form.errors)
+
+
+class PublicProfilePrivacyTests(TestCase):
+    def test_profile_does_not_count_or_show_inactive_posts(self):
+        user = User.objects.create_user(
+            username="profile_privacy",
+            password="Safe-test-password-42",
+            email="profile-privacy@example.com",
+        )
+        Post.objects.create(
+            title="Visible public post",
+            description="This post is public.",
+            author=user,
+            is_active=True,
+        )
+        Post.objects.create(
+            title="Hidden draft post",
+            description="This draft must stay hidden.",
+            author=user,
+            is_active=False,
+        )
+
+        response = self.client.get(reverse("profile", kwargs={"username": user.username}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Visible public post")
+        self.assertNotContains(response, "Hidden draft post")
+        self.assertContains(response, '<strong class="d-block fs-5">1</strong>', html=True)
