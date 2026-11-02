@@ -2,12 +2,14 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django_ratelimit.decorators import ratelimit
 
 from apps.accounts.models import User
 from apps.message.models import Message
 
 
 @login_required(login_url="login")
+@ratelimit(key="user", rate="30/m", method="POST", block=True)
 def chats(request, recipient_id):
     recipient = get_object_or_404(User, pk=recipient_id)
     if recipient.pk == request.user.pk:
