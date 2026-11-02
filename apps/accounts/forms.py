@@ -39,6 +39,17 @@ class UserRegisterForm(UserCreationForm):
         model = User
         fields = ["username", "email"]
 
+    def clean_username(self):
+        username = self.cleaned_data["username"].strip()
+        if not re.fullmatch(r"[A-Za-z0-9_]+", username):
+            raise forms.ValidationError(
+                "Никнейм должен содержать только английские буквы, цифры и знак подчёркивания."
+            )
+        return username
+
+    def clean_email(self):
+        return self.cleaned_data["email"].strip().lower()
+
 
 class UserProfileForm(UserChangeForm):
     password = None
