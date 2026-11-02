@@ -57,3 +57,37 @@ class PrivateChatTests(TestCase):
         response = self.client.get(reverse("chats", kwargs={"recipient_id": self.bob.pk}))
 
         self.assertEqual(response.status_code, 403)
+
+
+class MessageValidationTests(TestCase):
+    def setUp(self):
+        self.sender = User.objects.create_user(
+            username="message_sender",
+            password="Safe-test-password-42",
+            email="message-sender@example.com",
+        )
+        self.recipient = User.objects.create_user(
+            username="message_recipient",
+            password="Safe-test-password-42",
+            email="message-recipient@example.com",
+        )
+        self.client.force_login(self.sender)
+
+    def test_empty_message_is_not_saved(self):
+        response = self.client.post(
+            reverse("chats", kwargs={"recipient_id": self.recipient.pk}),
+            {"content": "   "},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Message.objects.count(), 0)
+
+    def test_message_content_is_limited_to_5000_characters(self):
+        response = self.client.post(
+            reverse("chats", kwargs={"recipient_id": self.recipient.pk}),
+            {"content": "x" * 6000},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        message = Message.objects.get(sender=self.sender, recipient=self.recipient)
+        self.assertEqual(len(message.content), 5000)
