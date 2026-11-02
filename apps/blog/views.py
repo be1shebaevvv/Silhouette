@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django_ratelimit.decorators import ratelimit
 
 from apps.accounts.models import User
 from apps.blog.forms import CommentForm, PostCreationForm, PostForm, ReportForm
@@ -72,6 +73,7 @@ def user_post_count(request):
 
 @login_required(login_url="login")
 @require_POST
+@ratelimit(key="user", rate="20/m", method="POST", block=True)
 def save_comment_form(request, post_id):
     post = get_object_or_404(Post, pk=post_id, is_active=True)
     form = CommentForm(request.POST)
@@ -85,6 +87,7 @@ def save_comment_form(request, post_id):
 
 @login_required(login_url="login")
 @require_POST
+@ratelimit(key="user", rate="20/m", method="POST", block=True)
 def reply_to_comment(request, comment_id):
     parent = get_object_or_404(Comment.objects.select_related("post"), pk=comment_id)
     form = CommentForm(request.POST)
@@ -146,6 +149,7 @@ def add_post(request):
 
 @login_required(login_url="login")
 @require_POST
+@ratelimit(key="user", rate="60/m", method="POST", block=True)
 def like_dislike_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id, is_active=True)
     action = request.POST.get("action")
@@ -202,6 +206,7 @@ def top_posts_view(request):
 
 @login_required(login_url="login")
 @require_POST
+@ratelimit(key="user", rate="5/h", method="POST", block=True)
 def report_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id, is_active=True)
     if post.author_id == request.user.pk:
@@ -225,6 +230,7 @@ def report_post(request, post_id):
 
 @login_required(login_url="login")
 @require_POST
+@ratelimit(key="user", rate="5/h", method="POST", block=True)
 def report_comment(request, comment_id):
     comment = get_object_or_404(Comment.objects.select_related("post"), pk=comment_id)
     if comment.author_id == request.user.pk:
@@ -249,6 +255,7 @@ def report_comment(request, comment_id):
 
 @login_required(login_url="login")
 @require_POST
+@ratelimit(key="user", rate="10/h", method="POST", block=True)
 def delete_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     if post.author_id != request.user.pk:
