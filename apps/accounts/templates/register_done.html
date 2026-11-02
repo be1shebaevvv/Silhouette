@@ -1,19 +1,18 @@
 {% extends 'base.html' %}
 
+{% block title %}Проверьте почту — Silhouette{% endblock %}
+
 {% block content %}
-<div class="container">
 <div class="row justify-content-center">
-<div class="col-md-6 mt-5">
-<div class="alert alert-success" role="alert">
-<h4 class="alert-heading">Поздравляем!</h4>
-<p>Вы успешно зарегистрировались!</p>
-<hr>
-<p class="mb-0">
-Теперь вы можете перейти на
-<a href="{% url 'recommend_posts' %}">главную страницу</a>
-или выполнить <a href="{% url 'login' %}">вход</a>.</p>
-</div>
-</div>
-</div>
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4 p-md-5 text-center">
+        <div class="display-5 mb-3" aria-hidden="true">✉</div>
+        <h1 class="h3 mb-3">Проверьте электронную почту</h1>
+        <p class="text-secondary">Аккаунт создан. Чтобы войти, подтвердите адрес по ссылке в письме. Если письма нет, проверьте папку «Спам».</p>
+        <a href="{% url 'login' %}" class="btn btn-dark mt-2">Перейти ко входу</a>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

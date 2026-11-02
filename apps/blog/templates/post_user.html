@@ -1,42 +1,27 @@
 {% extends 'base.html' %}
 
-{% block content %}
+{% block title %}Публикации пользователя — Silhouette{% endblock %}
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" integrity="sha256-2XFplPlrFClt0bIdPgpz8H7ojnk10H69xRqd9+uTShA=" crossorigin="anonymous" />
-<div class="container">
-  <div class="row mt-n5">
-    {% for p in page_obj %}
-      <div class="col-md-6 col-lg-4 mt-5 wow fadeInUp" data-wow-delay=".2s" style="visibility: visible; animation-delay: 0.2s; animation-name: fadeInUp;">
-        <div class="blog-grid">
-          {% if p.media.name|lower|slice:'-3:' == 'mp4' %}
-            <div class="blog-grid-img position-relative">
-              <video src="{{ p.media.url }}" class="card-img-top" alt="{{ p.title }}" style="height: 400px;"></video>
-            </div>
-          {% else %}
-            <div class="blog-grid-img position-relative">
-              <img src="{{ p.media.url }}" class="card-img-top" alt="{{ p.title }}" style="height: 400px;">
-            </div>
-          {% endif %}
-          <div class="blog-grid-text p-4">
-            <h3 class="h5 mb-3"><a href="{% url 'post_detail' p.id %}" style="text-decoration: none; color: black;">{{ p.title }}</a></h3>
-            <p class="display-30">{{ p.description|truncatewords:10|safe }}</p>
-            <div class="meta meta-style2">
-              <ul>
-                <li><i class="fas fa-calendar-alt"></i>{{ p.created_at }}</li>
-                <li><a href="{% url 'profile' p.author.username %}" style="text-decoration: none; color: black;"><i class="fas fa-user"></i>{{ p.author.username }}</a></li>
-                <li><a href="{% url 'post_detail' p.id %}" style="text-decoration: none; color: black;"><i class="fas fa-comments"></i>
-                  {% if comment_count == 0 %}
-                    <p>Нет комментариев</p>
-                  {% else %}
-                    <p> {{ comment_count }}</p>
-                  {% endif %}
-                </a></li>
-              </ul>
-            </div>
-          </div>
+{% block content %}
+<h1 class="h3 mb-4">Публикации пользователя</h1>
+<div class="row g-4">
+  {% for p in page_obj %}
+    <div class="col-12 col-md-6 col-xl-4">
+      <article class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+        {% if p.media %}
+          {% if p.is_video %}<video src="{{ p.media.url }}" controls preload="metadata" class="w-100" style="height: 220px; object-fit: contain; background: #111;"></video>
+          {% else %}<img src="{{ p.media.url }}" alt="Медиа к публикации" class="w-100" style="height: 220px; object-fit: cover;">{% endif %}
+        {% endif %}
+        <div class="card-body p-4">
+          <div class="small text-secondary mb-2">{{ p.created_at|date:"d.m.Y H:i" }}</div>
+          <h2 class="h5"><a class="text-decoration-none text-dark" href="{% url 'post_detail' p.pk %}">{{ p.title }}</a></h2>
+          <p style="white-space: pre-wrap;">{{ p.description|truncatewords:30 }}</p>
+          <div class="small text-secondary">{{ p.likes.count }} нравится · {{ p.post_comments.count }} комментариев</div>
         </div>
-      </div>
-    {% endfor %}
-  </div>
+      </article>
+    </div>
+  {% empty %}
+    <div class="col-12"><p class="text-secondary">У этого пользователя пока нет публичных публикаций.</p></div>
+  {% endfor %}
 </div>
 {% endblock %}

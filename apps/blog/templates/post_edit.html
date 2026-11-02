@@ -1,10 +1,28 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<form method="post" action="">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Сохранить</button>
-</form>
+{% block title %}Редактировать публикацию — Silhouette{% endblock %}
 
+{% block content %}
+<section class="mx-auto" style="max-width: 760px;">
+  <div class="mb-4"><h1 class="h3 mb-1">Редактировать публикацию</h1><p class="text-secondary mb-0">Изменения доступны только автору публикации.</p></div>
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4 p-md-5">
+      <form method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="alert alert-danger">{% for error in form.non_field_errors %}<p class="mb-0">{{ error }}</p>{% endfor %}</div>{% endif %}
+        {% for field in form %}
+          <div class="mb-4">
+            {% if field.field.widget.input_type == "checkbox" %}
+              <div class="form-check">{{ field }}<label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label></div>
+            {% else %}
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+            {% endif %}
+            {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+        {% endfor %}
+        <div class="d-flex gap-2"><button type="submit" class="btn btn-dark">Сохранить</button><a href="{% url 'post_detail' object.pk %}" class="btn btn-outline-secondary">Отмена</a></div>
+      </form>
+    </div>
+  </div>
+</section>
 {% endblock %}
